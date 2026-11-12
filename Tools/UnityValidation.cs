@@ -14,6 +14,7 @@ using UnityEditor.Presets;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
+using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Contact.Components;
 using VRC.PackageManagement.Core.Types;
 using VRC.PackageManagement.Core.Types.Providers;
@@ -238,7 +239,9 @@ public static class ShockOscPackageValidation
             }
             var results = new List<object>();
             report["builds"] = results;
-            foreach (int count in new[] { 1, 4, 3 }) results.Add(CheckBuild(single, four, count, optimize, optimizerPreset));
+            foreach (int count in new[] { 4, 1, 3 }) results.Add(CheckBuild(single, four, count, optimize, optimizerPreset));
+            results.Add(CheckBuild(single, four, 4, optimize, optimizerPreset, true));
+            results.Add(CheckBuild(single, four, 4, false, null, false, true));
             report["passed"] = true;
             Write("validation-results.json", report);
             EditorApplication.Exit(0);
@@ -300,7 +303,7 @@ public static class ShockOscPackageValidation
         return root;
     }
 
-    static object CheckBuild(GameObject single, GameObject four, int count, bool optimize, string presetPath)
+    static object CheckBuild(GameObject single, GameObject four, int count, bool optimize, string presetPath, bool initiallyInactive = false, bool editorOnly = false)
     {
         var scene = EditorSceneManager.NewPreviewScene();
         try
@@ -314,6 +317,17 @@ public static class ShockOscPackageValidation
             if (count == 3)
             {
                 UnityEngine.Object.DestroyImmediate(badges.transform.GetChild(3).gameObject);
+            }
+            if (initiallyInactive) badges.SetActive(false);
+            if (editorOnly) badges.tag = "EditorOnly";
+            var menuHookType = FindType("Furroxide.ShockOsc.Editor.ShockOscMenuBuildHook");
+            if (menuHookType != null)
+            {
+                var menuHook = Activator.CreateInstance(menuHookType);
+                Require((int)menuHookType.GetProperty("callbackOrder").GetValue(menuHook) < -10000, "Shared menu must be installed before VRCFury");
+                Require((bool)menuHookType.GetMethod("OnPreprocessAvatar").Invoke(menuHook, new object[] { avatar }), "Shared menu installation failed");
+                // Running preparation twice must not add the shared menu twice.
+                Require((bool)menuHookType.GetMethod("OnPreprocessAvatar").Invoke(menuHook, new object[] { avatar }), "Repeated menu preparation failed");
             }
             var hookType = FindType("VF.Hooks.VrcPreuploadHook");
             Require(hookType != null, "VRCFury pre-upload hook is unavailable");
@@ -330,6 +344,15 @@ public static class ShockOscPackageValidation
                 type.GetMethod("Optimize").Invoke(optimizer, null);
             }
             var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
+            if (editorOnly)
+            {
+                var excludedControls = ReadMenu(descriptor.expressionsMenu);
+                Require(!excludedControls.Any(c => c.parameter != null && c.parameter.name == "Shocker/Toggle"), "EditorOnly badges must not install a Shocker toggle");
+                Require(descriptor.expressionParameters == null || !descriptor.expressionParameters.parameters.Any(p => p.name.StartsWith("ShockOsc/_Config/", StringComparison.Ordinal)), "EditorOnly badges must not install configuration parameters");
+                return new { count, editorOnly, sharedMenuInstalled = false };
+            }
+            var menuControls = CheckMenus(descriptor);
+            if (initiallyInactive) return new { count, initiallyInactive, optimized = optimize, menuControls };
             var expressionParameters = descriptor.expressionParameters.parameters.Select(p => new { p.name, p.saved, p.defaultValue, p.networkSynced }).ToArray();
             var fx = descriptor.baseAnimationLayers.First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
             Require(fx != null, "Built FX controller is missing");
@@ -339,6 +362,7 @@ public static class ShockOscPackageValidation
             animator.runtimeAnimatorController = fx;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             animator.Rebind();
+            var configInteractions = CheckConfigInteractions(animator);
             var expectedBones = new Dictionary<string, HumanBodyBones> {
                 { "ShockOsc/Lower-Left", HumanBodyBones.LeftUpperLeg }, { "ShockOsc/Lower-Right", HumanBodyBones.RightUpperLeg },
                 { "ShockOsc/Upper-Left", HumanBodyBones.LeftUpperArm }, { "ShockOsc/Upper-Right", HumanBodyBones.RightUpperArm }
@@ -401,8 +425,79 @@ public static class ShockOscPackageValidation
             Require(renderers.SelectMany(r => r.sharedMaterials).All(m => m != null && m.shader != null && !ShaderUtil.ShaderHasError(m.shader)), "Shader compilation failed");
             var emissionCurves = fx.animationClips.SelectMany(c => AnimationUtility.GetCurveBindings(c).Where(b => b.propertyName.Contains("EmissionColor")).Select(b => new { property = b.propertyName, max = AnimationUtility.GetEditorCurve(c, b).keys.Max(k => k.value) })).ToArray();
             Require(emissionCurves.Any(c => c.property.EndsWith(".g") && c.max > 0) && emissionCurves.Any(c => c.property.EndsWith(".r") && c.max > 0), "Green/red emission curves were lost");
-            return new { count, optimized = optimize, triangles, renderers = renderers.Length, materialSlots = slots, expressionParameters, invalidBindings = invalid, snapshots, emissionCurves, contacts = receivers.Select(c => new { c.parameter, path = AnimationUtility.CalculateTransformPath(c.transform, avatar.transform) }).ToArray() };
+            return new { count, optimized = optimize, triangles, renderers = renderers.Length, materialSlots = slots, menuControls, configInteractions, expressionParameters, invalidBindings = invalid, snapshots, emissionCurves, contacts = receivers.Select(c => new { c.parameter, path = AnimationUtility.CalculateTransformPath(c.transform, avatar.transform) }).ToArray() };
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }
+    }
+
+    static List<VRCExpressionsMenu.Control> ReadMenu(VRCExpressionsMenu root)
+    {
+        var controls = new List<VRCExpressionsMenu.Control>();
+        var seen = new HashSet<VRCExpressionsMenu>();
+        Action<VRCExpressionsMenu> visit = null;
+        visit = menu => {
+            if (menu == null || !seen.Add(menu)) return;
+            Require(menu.controls.Count <= 8, "Built menu exceeds VRChat's eight-control limit: " + menu.name);
+            foreach (var control in menu.controls)
+            {
+                controls.Add(control);
+                if (control.type == VRCExpressionsMenu.Control.ControlType.SubMenu) visit(control.subMenu);
+            }
+        };
+        visit(root);
+        return controls;
+    }
+
+    static object CheckMenus(VRCAvatarDescriptor descriptor)
+    {
+        var controls = ReadMenu(descriptor.expressionsMenu);
+        var toggles = controls.Where(c => c.parameter != null && c.parameter.name == "Shocker/Toggle").ToArray();
+        Require(toggles.Length == 1, "Expected one shared Shocker toggle; found " + toggles.Length);
+        Require(toggles[0].type == VRCExpressionsMenu.Control.ControlType.Toggle, "Shocker must remain a toggle");
+        var bools = new[] { "Paused", "ModeIntensity", "ModeDuration" };
+        var floats = new[] { "Intensity", "MinIntensity", "MaxIntensity", "Duration", "MinDuration", "MaxDuration", "CooldownTime", "HoldTime" };
+        foreach (string setting in bools.Concat(floats))
+        {
+            string name = "ShockOsc/_Config/_All/" + setting;
+            bool isBool = bools.Contains(setting);
+            var items = controls.Where(c => isBool ? c.parameter != null && c.parameter.name == name
+                : c.subParameters != null && c.subParameters.Any(p => p.name == name)).ToArray();
+            Require(items.Length == 1, "Expected one configuration control for " + name + "; found " + items.Length);
+            Require(items[0].type == (isBool ? VRCExpressionsMenu.Control.ControlType.Toggle : VRCExpressionsMenu.Control.ControlType.RadialPuppet), "Incorrect configuration control type: " + name);
+            var parameters = descriptor.expressionParameters.parameters.Where(p => p.name == name).ToArray();
+            Require(parameters.Length == 1 && parameters[0].valueType == (isBool ? VRCExpressionParameters.ValueType.Bool : VRCExpressionParameters.ValueType.Float), "Configuration parameter missing, duplicated or mistyped: " + name);
+            Require(!parameters[0].saved && !parameters[0].networkSynced, "Bridge settings must be unsaved and local: " + name);
+            var fx = (AnimatorController)descriptor.baseAnimationLayers.First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
+            Require(fx.parameters.Count(p => p.name == name && p.type == (isBool ? AnimatorControllerParameterType.Bool : AnimatorControllerParameterType.Float)) == 1, "Configuration animator parameter missing, duplicated or renamed: " + name);
+        }
+        return controls.Select(c => new { c.name, type = c.type.ToString(), parameter = c.parameter?.name, subParameters = c.subParameters?.Select(p => p.name).ToArray() }).ToArray();
+    }
+
+    static int CheckConfigInteractions(Animator animator)
+    {
+        int checkedValues = 0;
+        foreach (var parameter in animator.parameters.Where(p => p.name.StartsWith("ShockOsc/_Config/_All/", StringComparison.Ordinal)))
+        {
+            if (parameter.type == AnimatorControllerParameterType.Bool)
+            {
+                foreach (bool value in new[] { true, false })
+                {
+                    animator.SetBool(parameter.name, value); animator.Update(.05f);
+                    Require(animator.GetBool(parameter.name) == value, "Animator overwrites the configuration toggle: " + parameter.name);
+                    checkedValues++;
+                }
+            }
+            else
+            {
+                foreach (float value in new[] { 0f, .25f, .75f, 1f, 0f })
+                {
+                    animator.SetFloat(parameter.name, value); animator.Update(.05f);
+                    Require(Mathf.Approximately(animator.GetFloat(parameter.name), value), "Animator overwrites the configuration radial: " + parameter.name);
+                    checkedValues++;
+                }
+            }
+        }
+        Require(checkedValues == 46, "Not all configuration controls were exercised");
+        return checkedValues;
     }
 }

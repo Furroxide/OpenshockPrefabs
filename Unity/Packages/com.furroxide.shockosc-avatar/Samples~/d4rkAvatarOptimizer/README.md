@@ -6,4 +6,6 @@ Add one optimizer component to the avatar root. Use its preset selector to apply
 
 The preset disables unrelated FX, PhysBone, blendshape and component-cleanup optimizations. Mesh merging still affects the avatar as a whole; review the merge preview and exclusions before uploading. Do not set this preset as the project-wide default.
 
+The preset also disables **Delete Unused Animator Parameters** to preserve the menu's OpenShock configuration parameters. Keep that option disabled when using your own optimizer settings.
+
 For a VCC installation, the sample is copied to an editable `Assets/Samples` folder. For the optional manual-install archive, the preset is installed under `Assets/Furroxide/PiShockBolt/OSC`.

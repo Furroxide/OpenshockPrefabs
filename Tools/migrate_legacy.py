@@ -28,7 +28,9 @@ def find_matches(project, config):
     if assets.is_symlink() or getattr(assets, "is_junction", lambda: False)() or not assets.resolve().is_relative_to(project):
         raise ValueError("Assets directory must be inside the selected project")
     assets = assets.resolve()
-    targets = {a["guid"] for a in config["assets"] if "legacyPath" in a}
+    # Match every asset exported by either manual archive, including newer scripts
+    # and menus. The package manifest is the only allowlisted file not exported.
+    targets = {a["guid"] for a in config["assets"] if a.get("path") != "package.json"}
     matches = {}
     for directory, folders, filenames in os.walk(assets, followlinks=False):
         for name in list(folders):

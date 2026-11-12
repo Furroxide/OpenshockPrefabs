@@ -1,0 +1,5 @@
+{
+  "name": "Furroxide.ShockOsc",
+  "rootNamespace": "Furroxide.ShockOsc",
+  "references": ["VRC.SDKBase", "VRC.SDK3A"]
+}

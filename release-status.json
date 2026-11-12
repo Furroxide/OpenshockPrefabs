@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "0.1.0",
   "redistribution": {
     "status": "unverified",
     "evidence": [],
@@ -8,20 +8,21 @@
   "cleanInstall": {
     "status": "verified",
     "evidence": [
-      "Unity 2022.3.22f1: actual VPM Core local-folder installation and native Unity archive import; SDK3.10.6 and VRCFury1.1457.0. Fresh manual baseline has no optimizer dependency."
+      "Unity 2022.3.22f1: native VPM Core installation and Unity archive import passed with SDK 3.10.6 and VRCFury 1.1457.0. Manual baseline passed without the optional optimizer. The separate optimizer archive passed native import."
     ]
   },
   "migration": {
     "status": "verified",
     "evidence": [
-      "Exact-header-GUID helper backed up 17 asset/meta pairs. Actual VPM install and full reload preserved fitted scene, local preset, transforms and channel override; moved GUID resolved, unrelated old-path file and reference-only FBX preserved."
+      "Original custom-install migration preserved the fitted scene, local placement preset, transforms and receiver override, including moved-GUID and unrelated-file cases.",
+      "Current manual archives to VPM: all 31 exported asset/meta pairs were backed up with verified checksums; no known file or assembly remained under Assets. A full Unity reload and optimized runtime checks passed, preserving the local placement preset and reference-only FBX."
     ]
   },
   "runtime": {
     "status": "verified",
     "evidence": [
-      "Disposable humanoid build copies: 1/4/3 badges, 244/976/732 triangles. Contact state sequence, limb ancestry, shader/bindings and red/green emission passed. VPM optional sample imported through Package Manager API; optimizer4.6.0 produced one renderer/material slot. Mesh vertices/normals/UV/topology matched the original.",
-      "The separate manual optimizer archive passed native import and the same optimized 1/4/3 runtime cases."
+      "Final 0.1.0 source: one shared toggle and all 11 local, unsaved configuration controls in single/four/three badge builds; parameter-value, contact, limb, indicator and animation-binding checks passed. Inactive badge groups retain the shared menu; EditorOnly groups do not install it.",
+      "Optional optimizer 4.6.0 retains the configuration parameters and merges 1/4/3 badges to one renderer/material slot with 244/976/732 triangles. Fresh manual, VPM, legacy migration and current manual-to-VPM cases passed."
     ]
   },
   "liveOsc": {
@@ -32,10 +33,22 @@
   "independentReview": {
     "status": "verified",
     "evidence": [
-      "Independent craft/communication and correctness/delivery reviews completed against the scoped source and actual archives; material findings repaired and rechecked."
+      "Independent craft/communication and correctness/delivery reviews verified all six 0.1.0 delivery files and 89 public source files. Frozen release-manifest SHA256: 96e68ea4c16fa70e0d261c5188a6992296fb0229d31a705bcca314667fa6505b.",
+      "Version/documentation findings and current manual-to-VPM migration coverage were repaired and independently verified. Final fresh VPM, manual, legacy migration and manual-to-VPM Unity evidence was inspected."
     ],
     "limitations": [
-      "Landing-page HTML was reviewed as source; browser rendering was unavailable. Licensing and live OSC remain unverified."
+      "Native menu structure was checked; in-game appearance, live OSC and physical output remain unverified."
+    ]
+  },
+  "testRelease": {
+    "version": "0.1.0",
+    "ownerAuthorized": true,
+    "evidence": [
+      "Owner authorized publishing the initial development version 0.1.0 through the existing public VCC feed on 2026-11-12."
+    ],
+    "acceptedPendingChecks": [
+      "redistribution",
+      "liveOsc"
     ]
   }
 }

@@ -19,6 +19,30 @@ Fit prefab instances in your scene or create your own prefab variant under `Asse
 
 The contact component is disabled in the authored prefab and enabled by the animations. Leave that checkbox disabled. The badge stays visible for fitting in Edit Mode. The menu is `ShockOsc/Shocker`. Its `Shocker/Toggle` defaults off on first use, but its state is saved and can restore enabled on later avatar loads.
 
+The menu is installed once per avatar, including when several single badges or multiple four-badge prefabs are used. Each badge's **Shock Osc Menu Installer** supplies the shared menu references; keep that component on the prefab. It is removed from the upload copy during the build.
+
+## OpenShock settings menu
+
+`ShockOsc/Settings` controls the bridge's global configuration using the documented `ShockOsc/_Config/_All/` parameters:
+
+| Menu | Parameter suffix | Control and scale |
+| --- | --- | --- |
+| Paused | `Paused` | Toggle; on pauses ShockOSC |
+| Intensity → Random intensity | `ModeIntensity` | Toggle; on selects random intensity |
+| Intensity → Fixed intensity | `Intensity` | Radial; 0–100% |
+| Intensity → Minimum / Maximum intensity | `MinIntensity` / `MaxIntensity` | Radials; random range, 0–100% |
+| Duration → Random duration | `ModeDuration` | Toggle; on selects random duration |
+| Duration → Fixed | `Duration` | Radial; 100% represents 10 seconds |
+| Duration → Minimum / Maximum | `MinDuration` / `MaxDuration` | Radials; random range, 100% represents 10 seconds |
+| Cooldown | `CooldownTime` | Radial; 100% represents 100 seconds |
+| Hold time | `HoldTime` | Radial; 100% represents 1 second |
+
+The bridge enforces a minimum duration of 300 ms. Changing a fixed intensity/duration value selects fixed mode; changing either range endpoint selects random mode. The bridge also keeps the minimum and maximum in order. These controls change global settings; group-specific overrides remain in OpenShock Desktop.
+
+Configuration parameters are local and unsaved, with zero startup placeholders. Run ShockOSC and let it synchronize its current settings before using the controls. The bridge's current values, including updates made in its desktop UI, can then appear in the menu. `Shocker` controls the badge receivers; `Paused` controls the bridge. Live synchronization remains unverified.
+
+See the [official parameter reference](https://wiki.openshock.org/guides/shockosc/parameters) and the bridge's [configuration handler](https://github.com/OpenShock/ShockOSC/blob/97e4b47121f582de04ce64efb7f11366dd8e23fb/ShockOsc/Services/UnderscoreConfig.cs).
+
 ## Channels and indicators
 
 | Instance | Attachment | Contact parameter |
@@ -38,9 +62,9 @@ Enable OSC in VRChat and configure matching groups in ShockOSC/OpenShock Desktop
 
 Install d4rkAvatarOptimizer separately. Version 4.6.0 is the current validation target.
 
-For VCC installation, select this package in **Window → Package Manager**, expand **Samples** and import **d4rkAvatarOptimizer preset**. For manual installation, import `PiShockBolt-Optimizer-1.0.0.unitypackage` after installing the optimizer; its preset appears at `Assets/Furroxide/PiShockBolt/OSC/PiShockBolt_Optimizer.preset`.
+For VCC installation, select this package in **Window → Package Manager**, expand **Samples** and import **d4rkAvatarOptimizer preset**. For manual installation, import `PiShockBolt-Optimizer-0.1.0.unitypackage` after installing the optimizer; its preset appears at `Assets/Furroxide/PiShockBolt/OSC/PiShockBolt_Optimizer.preset`.
 
-Add one optimizer component to the avatar root and apply the supplied preset through the component's preset selector. Keep **Apply on Upload** enabled. If an optimizer is already configured, retain its settings and enable **Merge Skinned Meshes**, **Merge Static Meshes as Skinned**, **Use Shader Toggles** and **Merge Different Property Materials**.
+Add one optimizer component to the avatar root and apply the supplied preset through the component's preset selector. Keep **Apply on Upload** enabled. If an optimizer is already configured, retain its settings and enable **Merge Skinned Meshes**, **Merge Static Meshes as Skinned**, **Use Shader Toggles** and **Merge Different Property Materials**. Disable **Delete Unused Animator Parameters** so the OSC configuration parameters remain available even though no animation uses them.
 
 The optimizer belongs on the avatar once. The preset disables unrelated FX, PhysBone, blendshape and component-cleanup optimizations. Mesh and material merging still affects the avatar, so use exclusions for parts that should remain separate. Do not make this preset a project-wide default.
 

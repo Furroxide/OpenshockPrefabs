@@ -129,6 +129,56 @@
       "path": "Samples~/d4rkAvatarOptimizer/README.md",
       "guid": "52cb1cdc46935b1f9c29d82d92238684",
       "optional": true
+    },
+    {
+      "path": "Runtime/ShockOscMenuInstaller.cs",
+      "guid": "84c005ed59ce53b6b31137a4b2cc1ce6",
+      "optional": false
+    },
+    {
+      "path": "Runtime/Furroxide.ShockOsc.asmdef",
+      "guid": "a9e3dc790e535ea2b75979368f9338fe",
+      "optional": false
+    },
+    {
+      "path": "Editor/ShockOscMenuBuildHook.cs",
+      "guid": "e7fce03bda1853d4bfd83eec8335433d",
+      "optional": false
+    },
+    {
+      "path": "Editor/Furroxide.ShockOsc.Editor.asmdef",
+      "guid": "9a5f2ef25bc95c9ab8c7c328919106dd",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_Menu.asset",
+      "guid": "eed84c8b0eeb56238d37148decc73026",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_Settings.asset",
+      "guid": "52849731338c592f8fae6488d8d15871",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_Intensity.asset",
+      "guid": "24110c115cdb53f6840a743325bca889",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_Duration.asset",
+      "guid": "d98d719e849d5a2b86c942149d980a01",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_SettingsParameters.asset",
+      "guid": "8e25b916be795845a8fb0979f56662f3",
+      "optional": false
+    },
+    {
+      "path": "OSC/Menu/ShockOsc_Settings.controller",
+      "guid": "64d6b38e3baa51fb9e5fe00bf8e8b621",
+      "optional": false
     }
   ],
   "folders": [
@@ -139,6 +189,18 @@
     {
       "path": "OSC/Logic",
       "guid": "0defb09e39d05512b08e4b4a94ca5fad"
+    },
+    {
+      "path": "Runtime",
+      "guid": "e2f3bf2b8be351efa10b8a9931900aa9"
+    },
+    {
+      "path": "Editor",
+      "guid": "19c8342a484c50e28f2184ed1b97f37d"
+    },
+    {
+      "path": "OSC/Menu",
+      "guid": "66124ff28f13565b870dfce1d5b3f9be"
     }
   ],
   "externalGuids": {

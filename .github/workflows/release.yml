@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish only after all release evidence has been verified
+        description: Publish after evidence checks and any recorded owner authorization for a test release
         type: boolean
         default: false
 
@@ -46,15 +46,15 @@ jobs:
           fi
           if gh release view "$tag" --json isDraft > release-state.json 2>/dev/null; then
             python -c 'import json; assert json.load(open("release-state.json"))["isDraft"], "Refusing to overwrite a published release"'
-            gh release edit "$tag" --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
+            gh release edit "$tag" --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --prerelease=false --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
           else
-            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --prerelease=false --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
           fi
           gh release upload "$tag" dist/*.zip dist/*.unitypackage dist/package.json dist/SHA256SUMS dist/release-manifest.json --clobber
-      - name: Publish the verified release
+      - name: Publish the checked release
         if: inputs.publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="$(python -c 'import json; print(json.load(open("dist/package.json"))["version"])')"
-          gh release edit "v$version" --draft=false
+          gh release edit "v$version" --draft=false --prerelease=false

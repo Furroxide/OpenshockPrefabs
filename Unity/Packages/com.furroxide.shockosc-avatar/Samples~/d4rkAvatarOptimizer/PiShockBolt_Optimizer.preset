@@ -73,6 +73,10 @@ Preset:
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: settings.DeleteUnusedAnimatorParameters
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: settings.CombineApproximateMotionTimeAnimations
     value: 0
     objectReference: {fileID: 0}

@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -9,6 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("migration", ROOT / "Tools/migrate_legacy.py")
 migration = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(migration)
+package_spec = importlib.util.spec_from_file_location("migration_package", ROOT / "Tools/package.py")
+package = importlib.util.module_from_spec(package_spec)
+package_spec.loader.exec_module(package)
 
 
 class MigrationTests(unittest.TestCase):
@@ -49,6 +53,41 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(1, len(result["matches"]))
         self.assertTrue(asset.exists())
         self.assertFalse((self.root / ".ShockOscMigrationBackup").exists())
+
+    def test_current_manual_archives_leave_no_duplicate_assets_when_switching_to_vpm(self):
+        records = package.build(output=self.root / "archives")
+        config, _, _ = package.load()
+        exported = {}
+        for record in records[1:3]:
+            with tarfile.open(self.root / "archives" / record["name"]) as archive:
+                for member in archive.getmembers():
+                    if not member.name.endswith("/pathname"):
+                        continue
+                    guid = member.name.split("/")[0]
+                    relative = archive.extractfile(member).read().decode()
+                    asset = self.root / relative
+                    self.assertTrue(asset.resolve().is_relative_to(self.root / "Assets"))
+                    asset.parent.mkdir(parents=True, exist_ok=True)
+                    data = archive.extractfile(guid + "/asset").read()
+                    meta = archive.extractfile(guid + "/asset.meta").read()
+                    asset.write_bytes(data)
+                    Path(str(asset) + ".meta").write_bytes(meta)
+                    exported[guid] = (relative, data, meta)
+        placement = self.asset("Furroxide/PiShockBolt/OSC/Presets/Local.prefab", "b" * 32)
+        reference = self.asset("ReferenceOnly.fbx", "f" * 32, "externalObjects:\n  reference: {guid: " + next(iter(exported)) + "}\n")
+        self.assertEqual(set(exported), {a["guid"] for a in config["assets"] if a["path"] != "package.json"})
+        preview = migration.migrate(self.root, config)
+        self.assertEqual(set(exported), {a["guid"] for a in preview["matches"]})
+        result = migration.migrate(self.root, config, apply=True)
+        backup = Path(result["backup"])
+        for relative, data, meta in exported.values():
+            self.assertFalse((self.root / relative).exists())
+            self.assertFalse(Path(str(self.root / relative) + ".meta").exists())
+            self.assertEqual(data, (backup / relative).read_bytes())
+            self.assertEqual(meta, Path(str(backup / relative) + ".meta").read_bytes())
+        self.assertTrue(placement.exists() and reference.exists())
+        self.assertEqual([], migration.find_matches(self.root, config)[1])
+        self.assertEqual([], list((self.root / "Assets").rglob("*.asmdef")))
 
     def test_duplicate_guid_stops_before_any_file_move(self):
         one = self.asset("One.mat", self.guid)

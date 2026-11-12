@@ -14,9 +14,9 @@ python Tools/package.py build
 
 The output directory is `dist`. A build produces:
 
-- `com.furroxide.shockosc-avatar-1.0.0.zip`: VPM package, including the optional sample under `Samples~`.
-- `PiShockBolt-Modular-OSC-1.0.0.unitypackage`: manual installation, excluding the optional optimizer sample.
-- `PiShockBolt-Optimizer-1.0.0.unitypackage`: optional preset and its instructions.
+- `com.furroxide.shockosc-avatar-0.1.0.zip`: VPM package, including the optional sample under `Samples~`.
+- `PiShockBolt-Modular-OSC-0.1.0.unitypackage`: manual installation, excluding the optional optimizer sample.
+- `PiShockBolt-Optimizer-0.1.0.unitypackage`: optional preset and its instructions.
 - `package.json`, `SHA256SUMS` and `release-manifest.json`: release metadata, archive hashes and the asset inventory.
 - `candidate-index.json`: a local listing candidate. It points to the future release URLs and must not be deployed before those downloads are public.
 
@@ -32,7 +32,7 @@ Migration mode needs an extra preparation step: run `ShockOscPackageValidation.P
 
 ## Release checks
 
-`release-status.json` records the status and evidence for licensing, clean installation, migration, runtime behaviour, live OSC and independent review. A public release requires every check to be verified with evidence for the current version. Draft archive builds remain available while checks are pending.
+`release-status.json` records the status and evidence for licensing, clean installation, migration, runtime behaviour, live OSC and independent review. Normally, publication requires every check to be verified with evidence for the current version. The owner authorized `0.1.0` for public installation testing with redistribution terms unconfirmed and live OSC verification pending. Its version-specific `testRelease` record accepts those two limitations without marking them verified. Installation, migration, runtime and independent review still require evidence. That authorization does not carry forward to another version.
 
 Verify fresh VCC and fallback installation without the original OpenShock asset. Check the single and four-instance prefabs, removal of one badge, no missing scripts or animation bindings, contact enablement, bone links and green/red indicators. Repeat the PC optimizer merge with 976 triangles for four badges and 732 for three.
 
@@ -44,8 +44,8 @@ Inspect all final archives, image metadata, dependency references and public doc
 
 ## Automation
 
-Pull requests and pushes to `main` run the package tests and upload candidate archives. **Build Release** is a manual workflow: it creates a draft by default. Its `publish` option verifies release evidence before publishing. It does not replace the independent release review.
+Pull requests and pushes to `main` run the package tests and upload candidate archives. **Build Release** is a manual workflow: it creates a draft by default. Its `publish` option checks release evidence and any explicit, version-specific test authorization before publishing. It does not replace the independent release review.
 
-The Pages workflow builds its listing from public, stable VPM releases only. It verifies ZIP hashes and preserves older published versions. Inherited upstream releases and drafts are skipped. GitHub Pages must use the **GitHub Actions** source; the workflow must run from `main`.
+The Pages workflow builds its listing from public VPM releases with ordinary `X.Y.Z` versions, including the initial development version `0.1.0`. GitHub prereleases, inherited upstream releases and drafts are skipped. It verifies ZIP hashes and preserves older published versions. GitHub Pages must use the **GitHub Actions** source; the workflow must run from `main`.
 
 Before releasing another version, update the package version, download URL and changelog, then reset all release evidence for that version. Do not overwrite an already-published release or remove its downloads.

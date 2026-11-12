@@ -4,7 +4,7 @@ Back up your avatar project before changing installation formats. Choose one for
 
 ## From the custom Bolt Badge Unity package to VCC
 
-The migration helper identifies the 17 known legacy files by the GUID in each file's own `.meta` header. It moves matching files into a dated `.ShockOscMigrationBackup` folder outside `Assets`. It does not delete the old badge folder or change the fitted scene.
+The migration helper identifies maintained files by the GUID in each file's own `.meta` header. Its target list covers the original custom export and every asset in the current manual archives, including menu scripts, assemblies and documentation. It moves matching files into a dated `.ShockOscMigrationBackup` folder outside `Assets`. It does not delete the old badge folder or change the fitted scene.
 
 The local `OSC/Presets/PiShockBolt_OSC_Four_KhnFuCat.prefab` placement preset is excluded from migration and from distribution. It continues to reference the generic prefabs by their preserved GUIDs. Scene placement, overrides and channel names should therefore resolve to the package assets after migration.
 

@@ -183,11 +183,23 @@ def build(root=ROOT, output=None):
 
 def check_publishable(root=ROOT):
     status = json.loads((root / "release-status.json").read_text(encoding="utf-8"))
-    if status["version"] != load(root)[2]["version"]:
+    version = load(root)[2]["version"]
+    if status["version"] != version:
         raise ValueError("Release evidence belongs to a different package version")
+    accepted_pending = set()
+    authorization = status.get("testRelease")
+    if authorization:
+        if (authorization.get("version") != version or authorization.get("ownerAuthorized") is not True
+                or not authorization.get("evidence")):
+            raise ValueError("A test release requires explicit owner authorization for this version")
+        accepted_pending = set(authorization.get("acceptedPendingChecks", []))
+        if not accepted_pending <= {"redistribution", "liveOsc"}:
+            raise ValueError("Only redistribution and live OSC can remain pending for an authorized test release")
     for field in ["redistribution", "cleanInstall", "migration", "runtime", "liveOsc", "independentReview"]:
         check = status[field]
         if check.get("status") != "verified" or not check.get("evidence"):
+            if field in accepted_pending and check.get("note"):
+                continue
             raise ValueError(f"Public release pending: {field}. Record actual evidence in release-status.json.")
 
 
@@ -249,7 +261,7 @@ def main():
         print(json.dumps(build(output=args.output), indent=2))
     elif args.command == "check-publishable":
         check_publishable()
-        print("Release evidence is recorded for all required checks.")
+        print("Publication checks passed for this version and its recorded release scope.")
     else:
         import os
         print("Published versions:", build_listing(args.output or ROOT / "Website", token=os.environ.get("GITHUB_TOKEN")))

@@ -1,0 +1,12 @@
+{
+  "name": "Furroxide.ShockOsc.Editor",
+  "rootNamespace": "Furroxide.ShockOsc.Editor",
+  "references": [
+    "Furroxide.ShockOsc",
+    "com.vrcfury.api",
+    "VRC.SDKBase",
+    "VRC.SDK3A",
+    "VRC.SDKBase.Editor.BuildPipeline"
+  ],
+  "includePlatforms": ["Editor"]
+}
