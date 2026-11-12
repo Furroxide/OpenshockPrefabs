@@ -1,0 +1,27 @@
+{
+  "name": "com.furroxide.shockosc-avatar",
+  "displayName": "Furroxide ShockOSC Avatars",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "Modular lightning badges with independent ShockOSC touch channels and shared active/cooldown indicators for VRChat avatars.",
+  "author": {
+    "name": "Furroxide",
+    "email": "221987073+furroxide@users.noreply.github.com",
+    "url": "https://github.com/furroxide"
+  },
+  "license": "SEE LICENSE IN LICENSE.md",
+  "documentationUrl": "https://github.com/Furroxide/OpenshockPrefabs#readme",
+  "changelogUrl": "https://github.com/Furroxide/OpenshockPrefabs/blob/main/Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md",
+  "url": "https://github.com/Furroxide/OpenshockPrefabs/releases/download/v1.0.0/com.furroxide.shockosc-avatar-1.0.0.zip",
+  "vpmDependencies": {
+    "com.vrchat.avatars": ">=3.10.6 <3.11.0",
+    "com.vrcfury.vrcfury": ">=1.1457.0 <2.0.0"
+  },
+  "samples": [
+    {
+      "displayName": "d4rkAvatarOptimizer preset",
+      "description": "Optional PC mesh-merging preset. Install d4rkAvatarOptimizer before importing.",
+      "path": "Samples~/d4rkAvatarOptimizer"
+    }
+  ]
+}

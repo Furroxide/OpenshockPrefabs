@@ -1,0 +1,10 @@
+dist/
+Website/
+__pycache__/
+*.pyc
+Unity/[Ll]ibrary/
+Unity/[Ll]ogs/
+Unity/[Tt]emp/
+Unity/[Oo]bj/
+Unity/[Uu]ser[Ss]ettings/
+Unity/Packages/packages-lock.json

@@ -1,53 +1,43 @@
-[![Discord Shield](https://discordapp.com/api/guilds/1078124408775901204/widget.png?style=shield)](https://discord.gg/OpenShock) [![Unity](https://img.shields.io/badge/Unity-%23000000.svg?logo=unity&logoColor=white)](https://unity.com/) [![CVR](https://img.shields.io/badge/ChilloutVR-red)](https://store.steampowered.com/app/661130/ChilloutVR/) [![VRC](https://img.shields.io/badge/VRChat-blue)](https://store.steampowered.com/app/438100/VRChat/) [![VRCFury](https://img.shields.io/badge/VRCFury-orange)](https://vrcfury.com/)
+# Furroxide ShockOSC Avatars
 
+Modular lightning badges for VRChat avatars: independent touch channels, shared active and cooldown indicators, and an optional PC mesh merge. Each badge uses 244 triangles and the same two 512 × 512 texture maps.
 
-# Openshock Prefabs
-Here you'll find some prefabs I created in Unity for [VRChat (VRC)](https://store.steampowered.com/app/438100/VRChat/) and [ChilloutVR (CVR)](https://store.steampowered.com/app/661130/ChilloutVR/) to utilize the [Openshock](https://github.com/OpenShock) project in either of those games.
+This is the Furroxide-maintained fork of [Kyobinoyo's OpenShock prefabs](https://github.com/Kyobinoyo/OpenshockPrefabs). The Shocker controller, parameter asset, animation clips and VRCFury configuration were adapted for the replacement badge. The original model, textures and Poiyomi material are excluded from the maintained package. The [original prefab documentation](docs/upstream-prefabs.md) and upstream history are preserved.
 
-All of the [VRChat](https://store.steampowered.com/app/438100/VRChat/) prefabs use [VRCFury](https://vrcfury.com/).
+**Release status:** version 1.0.0 is being prepared. Upstream redistribution terms and the live VRChat/bridge test remain unverified. Development follows the owner's open-source assumption; this is not a confirmed licence grant. See [licensing status](Unity/Packages/com.furroxide.shockosc-avatar/LICENSE.md) and [release checks](docs/development.md#release-checks).
 
-To use [ShockOSC](https://github.com/OpenShock/ShockOsc) in ChilloutVR you'll need a OSC mod. One of the most popular ones are [OSC by kafeijao](https://github.com/kafeijao/Kafe_CVR_Mods?tab=readme-ov-file).
+## Install with Creator Companion
 
-When multiple VRChat Prefabs are used together by default they should combine into one single Sub-Menu.
-  
-  
-  
-## List of Prefabs
-| Name              |Parameters|CVR|VRC| Description   |Download|
-| :-------------:     | :-------------: |:----------:|:-----------:|:---------------|:----------------:|
-| Shocker |3|✔️|✔️| A Shocker model inclusive trigger prefab to make it possible to shock you in VR by touching the Shocker using [ShockOSC](https://github.com/OpenShock/ShockOsc)|[Download](https://github.com/Kyobinoyo/OpenshockPrefabs/releases/tag/Shockerv1.2) |
-| Remote Trigger |1/0|❌|✔️| A combination of prefabs to make it possible to shock you over distance like using a remote utilizing contacts and [ShockOSC](https://github.com/OpenShock/ShockOsc)| [Download](https://github.com/Kyobinoyo/OpenshockPrefabs/releases/tag/RemoteTrigger) |
-| Multi Remote Trigger |Variable (default: 8)|❌|✔️|An expansion of the normal Remote Trigger. By default you can configure up to 8 targets with minimal effort.|[Download](https://github.com/Kyobinoyo/OpenshockPrefabs/releases/tag/RemoteTrigger)|  
-|Settings Menu |0 |❌|✔️|A Menu for editing [ShockOSC](https://github.com/OpenShock/ShockOsc) settings from within the game. __**Needs ShockOsc v2.0 or newer**__|  [Download](https://github.com/Kyobinoyo/OpenshockPrefabs/releases/tag/SettingsMenu) |  
+Once a verified release is published:
 
-❌ = not yet available  
-✔️ = available 
+1. Add the [VRCFury repository](https://vcc.vrcfury.com/) and the [ShockOSC avatar repository](https://furroxide.github.io/OpenshockPrefabs/index.json) in Creator Companion → Settings → Packages.
+2. Open **Manage Project** for your humanoid avatar project and install **Furroxide ShockOSC Avatars**.
+3. In Unity, open **Packages → Furroxide ShockOSC Avatars → OSC**. Drag the single-badge or four-badge prefab under your avatar root.
+4. Fit each badge and set its receiver parameter to match a ShockOSC group. Follow the [fitting and channel guide](Unity/Packages/com.furroxide.shockosc-avatar/README.md).
 
-## Tips
-### Move the ShockOSC Sub-Menu in VRChat into another Sub-Menu:
-By default the ShockOsc Sub-Menu gets created in the main menu page.  
-If you want to move it, just click on your avatars root object, then add the "VRCFury | Move Menu Item" component and configure it like this with your own path:  
-![MoveMenu](Images/MoveMenu.png)  
-Make sure you name the menu you want it to be in correctly.
-After that the menu should be where you want it to be.  
+The listing includes published releases only. It stays empty while release checks are pending. For a local candidate, build the ZIP and add the package source folder as a VCC user package; see [development](docs/development.md).
 
-## FAQ
-### Q: VRCFury is throwing some error.
-A: Make sure you have enough parameter memory slots free for the prefab you want to use.  
-if this doesn't help contact me on the [Openshock Discord](https://discord.gg/OpenShock).  
+## Compatibility
 
-### Q: Why is ShockOsc not reacting to my Shocker being touched?
-A: First make sure [OSC](https://docs.vrchat.com/docs/osc-overview#how-do-i-use-it) is active, if that's not the problem, check if you named the parameters correctly, ``ShockOsc/NAME`` while NAME should be replaced by the group name in ShockOsc do not remove the ``ShockOsc/``. If this is still not working, VRChat is being funny, when updating an Avatar, most of the time it does not update the parameters for OSC, to fix that go to  
-```
-C:\Users\%USERPROFILE%\AppData\LocalLow\VRChat\VRChat\OSC
-```  
-and delete the files there, it'll not damage your game you can even do it while being in-game, after you change back in to your avatar it should generate new files with your parameters updated.  
+| Area | Requirement or limit |
+| --- | --- |
+| Unity | 2022.3.22f1 |
+| VRChat Avatars SDK | `>=3.10.6 <3.11.0` |
+| VRCFury | `>=1.1457.0 <2.0.0` |
+| Optional optimizer | d4rkAvatarOptimizer 4.6.0 is the current validation target. Install it separately before importing the preset sample. |
+| Platform | PC avatar assets. Android/Quest support is not claimed. |
+| Desktop application | ShockOSC in OpenShock Desktop must be configured and running separately. No desktop app, credentials or device configuration are included. |
 
-### Q: Why is my friend getting shocked every time my Avatar is loaded in?
-A: Make sure the **Sender** object is disabled while uploading the Avatar, otherwise the Sender object is active when you load in and get's disabled when the parameter sync kicks in, resulting in a shock.  
+VCC resolves the required SDK and VRCFury packages from repositories you have added. It does not install d4rkAvatarOptimizer automatically.
 
-### Q: Why can't I shock myself? I have the Sender and Receiver on my avatar!
-A: In the *Receiver* script enable **Allow Self**
+## Other installation and upgrades
 
-### Q: Why do I have to merge Animators and stuff myself when I want to use it in CVR?
-A: Sadly there is not solution like VRCFury I'm aware of that is made for CVR. That means no fancy tool to do the annoying work.
+- The versioned `PiShockBolt-Modular-OSC-1.0.0.unitypackage` is a fallback for manual installation. Install the SDK and VRCFury first. The optimizer preset is a separate optional download.
+- Choose one installation format per project. When upgrading the custom Unity package, run the backed-up GUID migration helper before installing through VCC; it preserves avatar-specific placement presets. Read [upgrading](docs/upgrading.md) before switching formats.
+- [Avatar fitting, channels and optimizer setup](Unity/Packages/com.furroxide.shockosc-avatar/README.md)
+- [Official ShockOSC avatar setup](https://wiki.openshock.org/guides/shockosc/avatar-setup-vrc)
+- [Builds, tests and release process](docs/development.md)
+
+## Source and terms
+
+The package's [third-party notices](Unity/Packages/com.furroxide.shockosc-avatar/THIRD_PARTY_NOTICES.md) identify the reused integration and the separate dependencies. The desktop ShockOSC application's licence is not used as a substitute for the prefab repository's missing terms.

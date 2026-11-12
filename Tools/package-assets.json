@@ -1,0 +1,153 @@
+{
+  "packageName": "com.furroxide.shockosc-avatar",
+  "packagePath": "Unity/Packages/com.furroxide.shockosc-avatar",
+  "legacyRoot": "Assets/Furroxide/PiShockBolt",
+  "assets": [
+    {
+      "path": "OSC/Logic/PiShockBolt_Single.controller",
+      "guid": "a30434e3f496ff84f9a0b0295199955a",
+      "legacyPath": "OSC/Logic/PiShockBolt_Single.controller",
+      "optional": false
+    },
+    {
+      "path": "OSC/Logic/Single_Active.anim",
+      "guid": "00e998cd31085fa4b9d992de9b3d661c",
+      "legacyPath": "OSC/Logic/Single_Active.anim",
+      "optional": false
+    },
+    {
+      "path": "OSC/Logic/Single_Cooldown.anim",
+      "guid": "81b769a151f129442ba96fe076cc7609",
+      "legacyPath": "OSC/Logic/Single_Cooldown.anim",
+      "optional": false
+    },
+    {
+      "path": "OSC/Logic/Single_Disabled.anim",
+      "guid": "2c789c05afefb1f41900f10a29ec7b66",
+      "legacyPath": "OSC/Logic/Single_Disabled.anim",
+      "optional": false
+    },
+    {
+      "path": "OSC/Logic/Single_Idle.anim",
+      "guid": "96d487f02674f6e41ad5a949079c9003",
+      "legacyPath": "OSC/Logic/Single_Idle.anim",
+      "optional": false
+    },
+    {
+      "path": "OSC/PiShockBolt.shader",
+      "guid": "2302ddc57d7493441905f58270048040",
+      "legacyPath": "OSC/PiShockBolt.shader",
+      "optional": false
+    },
+    {
+      "path": "OSC/PiShockBolt_MenuIcon.png",
+      "guid": "92626d0fcdc8ad647a459a01c2f3d133",
+      "legacyPath": "OSC/PiShockBolt_MenuIcon.png",
+      "optional": false
+    },
+    {
+      "path": "Samples~/d4rkAvatarOptimizer/PiShockBolt_Optimizer.preset",
+      "guid": "416e103d053e99c47b4b2d57d979388f",
+      "legacyPath": "OSC/PiShockBolt_Optimizer.preset",
+      "optional": true
+    },
+    {
+      "path": "OSC/PiShockBolt_OSC.mat",
+      "guid": "3a436d05c58ca3e469fca091183cc2f1",
+      "legacyPath": "OSC/PiShockBolt_OSC.mat",
+      "optional": false
+    },
+    {
+      "path": "OSC/PiShockBolt_OSC.prefab",
+      "guid": "2a61de38305dfc94290bd10bdc9687fc",
+      "legacyPath": "OSC/PiShockBolt_OSC.prefab",
+      "optional": false
+    },
+    {
+      "path": "OSC/PiShockBolt_OSC_Four.prefab",
+      "guid": "65d469cdbcb2371418eb9b577e805ddc",
+      "legacyPath": "OSC/PiShockBolt_OSC_Four.prefab",
+      "optional": false
+    },
+    {
+      "path": "OSC/PiShockBolt_OSC_Mobile.mat",
+      "guid": "4f12d0a84e71f7a48ac86221b7564320",
+      "legacyPath": "OSC/PiShockBolt_OSC_Mobile.mat",
+      "optional": false
+    },
+    {
+      "path": "OSC/ShockerParameters.asset",
+      "guid": "9456eb68652e6c34aa08ba2bbd2f2e4c",
+      "legacyPath": "OSC/ShockerParameters.asset",
+      "optional": false
+    },
+    {
+      "path": "PiShockBolt.fbx",
+      "guid": "197cdf1a99196754a86d5dd67f5cf5a5",
+      "legacyPath": "PiShockBolt.fbx",
+      "optional": false
+    },
+    {
+      "path": "PiShockBolt_EmissionMask.png",
+      "guid": "dad1b9efe0a31c04bb231a3516404c85",
+      "legacyPath": "PiShockBolt_EmissionMask.png",
+      "optional": false
+    },
+    {
+      "path": "PiShockBolt_OSC_BaseColor.png",
+      "guid": "011e6ea1bd183d444b446f0c737759dd",
+      "legacyPath": "PiShockBolt_OSC_BaseColor.png",
+      "optional": false
+    },
+    {
+      "path": "README.md",
+      "guid": "06335770c7be40848a5390551316267e",
+      "legacyPath": "README.md",
+      "optional": false
+    },
+    {
+      "path": "LICENSE.md",
+      "guid": "ff5a8bbc66f05910a18b70ce9bada5ef",
+      "optional": false
+    },
+    {
+      "path": "CHANGELOG.md",
+      "guid": "b9fd37293b8a5d8e80923c7a415455e9",
+      "optional": false
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "guid": "7bb81a4cf5b857b5a6cd58496df4dbea",
+      "optional": false
+    },
+    {
+      "path": "package.json",
+      "guid": "cca057e85d2d5fa0a2f76546c077b532",
+      "optional": false
+    },
+    {
+      "path": "Samples~/d4rkAvatarOptimizer/README.md",
+      "guid": "52cb1cdc46935b1f9c29d82d92238684",
+      "optional": true
+    }
+  ],
+  "folders": [
+    {
+      "path": "OSC",
+      "guid": "53535ffcef705a649ec4ad16759cd90c"
+    },
+    {
+      "path": "OSC/Logic",
+      "guid": "0defb09e39d05512b08e4b4a94ca5fad"
+    }
+  ],
+  "externalGuids": {
+    "80f1b8067b0760e4bb45023bc2e9de66": "VRChat Contacts",
+    "d9e94e501a2d4c95bff3d5601013d923": "VRCFury",
+    "0b7113dea2069fc4e8943843eff19f70": "VRChat Mobile Standard Lite",
+    "67cc4cb7839cd3741b63733d5adf0442": "VRChat Avatars"
+  },
+  "optionalExternalGuids": {
+    "15e0f77126a8696498bf16d06aa7991b": "d4rkAvatarOptimizer"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "redistribution": {
+    "status": "unverified",
+    "evidence": [],
+    "note": "Development follows the owner's open-source assumption. No licence grant was found in the upstream prefab repository or Shocker v1.2 archive."
+  },
+  "cleanInstall": {
+    "status": "verified",
+    "evidence": [
+      "Unity 2022.3.22f1: actual VPM Core local-folder installation and native Unity archive import; SDK3.10.6 and VRCFury1.1457.0. Fresh manual baseline has no optimizer dependency."
+    ]
+  },
+  "migration": {
+    "status": "verified",
+    "evidence": [
+      "Exact-header-GUID helper backed up 17 asset/meta pairs. Actual VPM install and full reload preserved fitted scene, local preset, transforms and channel override; moved GUID resolved, unrelated old-path file and reference-only FBX preserved."
+    ]
+  },
+  "runtime": {
+    "status": "verified",
+    "evidence": [
+      "Disposable humanoid build copies: 1/4/3 badges, 244/976/732 triangles. Contact state sequence, limb ancestry, shader/bindings and red/green emission passed. VPM optional sample imported through Package Manager API; optimizer4.6.0 produced one renderer/material slot. Mesh vertices/normals/UV/topology matched the original.",
+      "The separate manual optimizer archive passed native import and the same optimized 1/4/3 runtime cases."
+    ]
+  },
+  "liveOsc": {
+    "status": "pending",
+    "evidence": [],
+    "note": "User explicitly deferred live VRChat/OpenShock Desktop verification on 2026-11-12. No physical device commands were sent."
+  },
+  "independentReview": {
+    "status": "verified",
+    "evidence": [
+      "Independent craft/communication and correctness/delivery reviews completed against the scoped source and actual archives; material findings repaired and rechecked."
+    ],
+    "limitations": [
+      "Landing-page HTML was reviewed as source; browser rendering was unavailable. Licensing and live OSC remain unverified."
+    ]
+  }
+}

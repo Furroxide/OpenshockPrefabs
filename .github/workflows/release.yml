@@ -1,0 +1,60 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish only after all release evidence has been verified
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shockosc-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main' || inputs.publish != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Validate and build
+        run: |
+          python -m unittest discover -s Tests -v
+          python Tools/package.py build
+      - name: Verify publication evidence
+        if: inputs.publish
+        run: python Tools/package.py check-publishable
+      - name: Create or update the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(python -c 'import json; print(json.load(open("dist/package.json"))["version"])')"
+          tag="v$version"
+          tag_refs="$(git ls-remote --tags origin "refs/tags/$tag" "refs/tags/$tag^{}")"
+          if [ -n "$tag_refs" ]; then
+            git fetch origin "refs/tags/$tag:refs/tags/$tag"
+            test "$(git rev-list -n 1 "$tag")" = "$GITHUB_SHA" || { echo "Existing tag points to a different commit; refusing to move it."; exit 1; }
+          fi
+          if gh release view "$tag" --json isDraft > release-state.json 2>/dev/null; then
+            python -c 'import json; assert json.load(open("release-state.json"))["isDraft"], "Refusing to overwrite a published release"'
+            gh release edit "$tag" --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
+          else
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "ShockOSC Avatars $version" --notes-file Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md
+          fi
+          gh release upload "$tag" dist/*.zip dist/*.unitypackage dist/package.json dist/SHA256SUMS dist/release-manifest.json --clobber
+      - name: Publish the verified release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(python -c 'import json; print(json.load(open("dist/package.json"))["version"])')"
+          gh release edit "v$version" --draft=false
