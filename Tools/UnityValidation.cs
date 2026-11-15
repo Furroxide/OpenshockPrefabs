@@ -186,7 +186,8 @@ public static class ShockOscPackageValidation
             Require(single != null && four != null, "Prefab references did not resolve after installation");
             Require(!Directory.Exists(Path.Combine(Root, "Assets/Openshock")), "Validation must not include the original OpenShock asset");
             var contact = single.GetComponentInChildren<VRCContactReceiver>(true);
-            Require(contact != null && !contact.enabled && !contact.allowSelf && contact.allowOthers && contact.localOnly, "Authored receiver defaults changed");
+            Require(contact != null && !contact.enabled && !contact.allowSelf && contact.allowOthers && contact.localOnly
+                && contact.receiverType.ToString() == "Constant", "Authored receiver defaults changed");
             var mesh = single.GetComponentInChildren<MeshFilter>(true).sharedMesh;
             Require(mesh.triangles.Length / 3 == 244, "Single badge triangle count changed");
             var originalMesh = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ValidationOriginal/PiShockBolt.fbx").GetComponentInChildren<MeshFilter>(true).sharedMesh;
@@ -314,6 +315,19 @@ public static class ShockOscPackageValidation
             badges.transform.SetParent(avatar.transform, false);
             // SDK preprocessing operates on a build copy, without editor prefab connections.
             PrefabUtility.UnpackPrefabInstance(badges, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            if (count == 1)
+            {
+                var installerType = FindType("Furroxide.ShockOsc.ShockOscMenuInstaller");
+                Require(installerType != null, "Per-badge group installer is missing");
+                var installer = badges.GetComponent(installerType);
+                Require(installer != null, "Single badge has no group installer");
+                installerType.GetField("groupName").SetValue(installer, "Custom-Test");
+                // Exercise the optional remote intensity channel on a single badge.
+                installerType.GetField("syncIntensity").SetValue(installer, true);
+                // Simulate an unpacked 0.1.0 badge: the new reference field did
+                // not exist in its serialized scene object, but the old feature did.
+                installerType.GetField("legacyBadgeControllerFeature").SetValue(installer, null);
+            }
             if (count == 3)
             {
                 UnityEngine.Object.DestroyImmediate(badges.transform.GetChild(3).gameObject);
@@ -354,10 +368,28 @@ public static class ShockOscPackageValidation
             var menuControls = CheckMenus(descriptor);
             if (initiallyInactive) return new { count, initiallyInactive, optimized = optimize, menuControls };
             var expressionParameters = descriptor.expressionParameters.parameters.Select(p => new { p.name, p.saved, p.defaultValue, p.networkSynced }).ToArray();
+            Require(!expressionParameters.Any(p => p.name.StartsWith("ShockOsc/_Any_", StringComparison.Ordinal)),
+                "The obsolete aggregate indicator parameters remain in the build");
             var fx = descriptor.baseAnimationLayers.First(l => l.type == VRCAvatarDescriptor.AnimLayerType.FX).animatorController;
             Require(fx != null, "Built FX controller is missing");
             var receivers = avatar.GetComponentsInChildren<VRCContactReceiver>(true);
             Require(receivers.Length == count, "Built receiver count changed");
+            foreach (var receiver in receivers)
+            {
+                var group = receiver.parameter;
+                foreach (var suffix in new[] { "", "_Active", "_Cooldown", "_CooldownPercentage", "_Intensity" })
+                {
+                    var matches = descriptor.expressionParameters.parameters.Where(p => p.name == group + suffix).ToArray();
+                    Require(matches.Length == 1, "Missing or duplicated group parameter: " + group + suffix);
+                    var parameter = matches[0];
+                    Require(parameter.valueType == ((suffix == "_CooldownPercentage" || suffix == "_Intensity")
+                        ? VRCExpressionParameters.ValueType.Float : VRCExpressionParameters.ValueType.Bool),
+                        "Wrong group parameter type: " + group + suffix);
+                    bool expectedSync = suffix != "" && (suffix != "_Intensity" || count == 1);
+                    Require(!parameter.saved && parameter.networkSynced == expectedSync,
+                        "Wrong group parameter sync settings: " + group + suffix);
+                }
+            }
             var animator = avatar.GetComponent<Animator>();
             animator.runtimeAnimatorController = fx;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
@@ -365,7 +397,8 @@ public static class ShockOscPackageValidation
             var configInteractions = CheckConfigInteractions(animator);
             var expectedBones = new Dictionary<string, HumanBodyBones> {
                 { "ShockOsc/Lower-Left", HumanBodyBones.LeftUpperLeg }, { "ShockOsc/Lower-Right", HumanBodyBones.RightUpperLeg },
-                { "ShockOsc/Upper-Left", HumanBodyBones.LeftUpperArm }, { "ShockOsc/Upper-Right", HumanBodyBones.RightUpperArm }
+                { "ShockOsc/Upper-Left", HumanBodyBones.LeftUpperArm }, { "ShockOsc/Upper-Right", HumanBodyBones.RightUpperArm },
+                { "ShockOsc/Custom-Test", HumanBodyBones.LeftUpperLeg }
             };
             Write("attachment-debug-" + count + ".json", new {
                 optimized = optimize,
@@ -394,37 +427,155 @@ public static class ShockOscPackageValidation
             Require(invalid.Count == 0, "Invalid animation bindings: " + string.Join(", ", invalid));
             var snapshots = new List<object>();
             var renderers = avatar.GetComponentsInChildren<Renderer>(true);
-            var emissionNames = fx.animationClips.SelectMany(c => AnimationUtility.GetCurveBindings(c)).Where(b => b.propertyName.Contains("EmissionColor")).Select(b => b.propertyName.Substring(9).Split('.')[0]).Distinct().ToArray();
-            foreach (string state in new[] { "Disabled", "Idle", "Active", "Cooldown", "Disabled", "Idle" })
+            Func<string, string[]> properties = suffix => fx.animationClips.SelectMany(c => AnimationUtility.GetCurveBindings(c))
+                .Where(b => b.propertyName.StartsWith("material.") && b.propertyName.Contains(suffix))
+                .Select(b => b.propertyName.Substring(9).Split('.')[0]).Distinct().ToArray();
+            var modeNames = properties("FeedbackMode");
+            var touchNames = properties("TouchStrength");
+            var progressNames = properties("CooldownProgress");
+            var activeNames = properties("ActiveStrength");
+            var coolingNames = properties("CooldownStrength");
+            var intensityNames = properties("IntensityLevel");
+            var emissionNames = properties("EmissionColor");
+            Write("feedback-debug-" + count + "-" + optimize + ".json", new {
+                fxParameters = ((AnimatorController)fx).parameters.Select(p => new { p.name, type = p.type.ToString() }).ToArray(),
+                expressionParameters,
+                layers = ((AnimatorController)fx).layers.Select(l => new { l.name, states = l.stateMachine.states.Select(s => s.state.name).ToArray() }).ToArray(),
+                modeNames, touchNames, progressNames, activeNames, coolingNames, intensityNames, emissionNames
+            });
+            Require(modeNames.Length * renderers.Length >= count && touchNames.Length * renderers.Length >= count
+                && progressNames.Length * renderers.Length >= count && activeNames.Length * renderers.Length >= count
+                && coolingNames.Length * renderers.Length >= count && intensityNames.Length * renderers.Length >= count,
+                "Per-badge visual bindings were lost");
+            Func<string[], float[]> values = names => renderers.SelectMany(renderer => {
+                var block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block);
+                return names.Select(name => block.GetFloat(name));
+            }).ToArray();
+            Action<string, bool> setSwitch = (name, value) => {
+                var type = ((AnimatorController)fx).parameters.Single(p => p.name == name).type;
+                if (type == AnimatorControllerParameterType.Bool) animator.SetBool(name, value);
+                else if (type == AnimatorControllerParameterType.Float) animator.SetFloat(name, value ? 1 : 0);
+                else throw new Exception("Unexpected switch parameter type: " + name + " / " + type);
+            };
+            foreach (var receiver in receivers)
             {
-                animator.SetBool("Shocker/Toggle", state != "Disabled");
-                animator.SetBool("ShockOsc/_Any_Active", state == "Active");
-                animator.SetBool("ShockOsc/_Any_Cooldown", state == "Cooldown");
-                animator.Update(0); animator.Update(.05f); animator.Update(.05f);
-                int enabled = receivers.Count(c => c.enabled && c.gameObject.activeInHierarchy);
-                Require(enabled == (state == "Disabled" ? 0 : count), "Contact enablement failed in " + state);
-                var colours = new List<Vector4>();
-                foreach (var renderer in renderers)
-                {
-                    var block = new MaterialPropertyBlock(); renderer.GetPropertyBlock(block);
-                    foreach (var property in emissionNames)
-                    {
-                        colours.Add(block.GetVector(property));
-                        foreach (var material in renderer.sharedMaterials) if (material.HasProperty(property)) colours.Add(material.GetVector(property));
-                    }
-                }
-                if (state == "Active") Require(colours.Any(c => c.y > 0 && c.y > c.x), "Active green emission did not animate");
-                if (state == "Cooldown") Require(colours.Any(c => c.x > 0 && c.x > c.y), "Cooldown red emission did not animate");
-                snapshots.Add(new { state, enabledContacts = enabled, emission = colours.Select(c => new[] { c.x, c.y, c.z, c.w }).ToArray() });
+                setSwitch(receiver.parameter, false);
+                setSwitch(receiver.parameter + "_Active", false);
+                setSwitch(receiver.parameter + "_Cooldown", false);
+                animator.SetFloat(receiver.parameter + "_CooldownPercentage", 0);
+                animator.SetFloat(receiver.parameter + "_Intensity", 0);
             }
+            setSwitch("Shocker/Toggle", false);
+            animator.Update(0); animator.Update(.05f); animator.Update(.05f);
+            Require(receivers.All(c => !c.enabled), "Off state left a receiver enabled");
+            setSwitch("Shocker/Toggle", true);
+            animator.Update(.08f); animator.Update(.08f);
+            Require(receivers.All(c => c.enabled), "Ready state did not enable every receiver");
+            Require(values(modeNames).All(v => Mathf.Abs(v) < .1f), "Ready state has active or cooldown feedback");
+            snapshots.Add(new { state = "Ready", modes = values(modeNames), touch = values(touchNames), progress = values(progressNames) });
+
+            var first = receivers[0].parameter;
+            setSwitch(first, true);
+            animator.Update(.02f); animator.Update(.03f);
+            var touchEntering = values(touchNames).Max();
+            Require(touchEntering > .05f && touchEntering < .95f, "Contact outline snapped on instead of easing in");
+            animator.Update(.07f);
+            Require(values(touchNames).Count(v => v > .9f) == 1, "Contact attempt was not isolated to one badge");
+            snapshots.Add(new { state = "Contact", touch = values(touchNames) });
+            setSwitch(first, false);
+            setSwitch(first + "_Active", true);
+            animator.Update(.02f); animator.Update(.04f);
+            var entering = values(activeNames).Max();
+            Require(entering > .05f && entering < .95f, "Active appearance snapped on instead of easing in");
+            snapshots.Add(new { state = "Active entering", active = values(activeNames), touch = values(touchNames) });
+            animator.Update(.12f);
+            Require(values(modeNames).Count(v => v > .9f && v < 1.1f) == 1, "Active status was not isolated to one badge");
+            Require(values(activeNames).Count(v => v > .95f) == 1 && values(coolingNames).All(v => v < .05f),
+                "Active full-badge strength was not isolated to one badge");
+            var greens = renderers.SelectMany(renderer => {
+                var block = new MaterialPropertyBlock(); renderer.GetPropertyBlock(block);
+                return emissionNames.Select(name => block.GetVector(name));
+            }).ToArray();
+            Require(greens.Any(c => c.y > c.x && c.y > 1.5f), "Active green indicator did not illuminate");
+            animator.SetFloat(first + "_Intensity", .25f);
+            animator.Update(.05f);
+            Require(values(intensityNames).Count(v => v > .2f && v < .3f) == 1,
+                "The secondary intensity meter did not track its group");
+            animator.SetFloat(first + "_Intensity", .9f);
+            animator.Update(.05f);
+            Require(values(intensityNames).Count(v => v > .85f && v < .95f) == 1,
+                "The secondary intensity meter did not update");
+            snapshots.Add(new { state = "Active", modes = values(modeNames), active = values(activeNames),
+                intensity = values(intensityNames), emission = greens.Select(c => new[] { c.x, c.y, c.z, c.w }).ToArray() });
+            animator.Update(.5f);
+            float settled = values(activeNames).Max();
+            animator.Update(.5f);
+            float held = values(activeNames).Max();
+            Require(settled > .95f && Mathf.Abs(held - settled) < .05f,
+                "Active cue changed during its steady hold");
+            setSwitch(first + "_Active", false);
+            setSwitch(first + "_Cooldown", true);
+            animator.SetFloat(first + "_CooldownPercentage", .65f);
+            animator.Update(.02f); animator.Update(.04f);
+            var exiting = values(activeNames).Max();
+            Require(exiting > .05f && exiting < .95f, "Active appearance snapped off instead of easing into cooldown");
+            snapshots.Add(new { state = "Active exiting", active = values(activeNames), cooling = values(coolingNames) });
+            animator.Update(.12f);
+            Require(values(modeNames).Count(v => v > 1.9f && v < 2.1f) == 1, "Cooldown status was not isolated to one badge");
+            Require(values(activeNames).All(v => v < .05f) && values(coolingNames).Count(v => v > .95f) == 1,
+                "Cooldown rim did not replace the active badge smoothly");
+            Require(values(progressNames).Count(v => v > .45f && v < .85f) == 1, "Cooldown progress did not track the group's percentage");
+            var ambers = renderers.SelectMany(renderer => {
+                var block = new MaterialPropertyBlock(); renderer.GetPropertyBlock(block);
+                return emissionNames.Select(name => block.GetVector(name));
+            }).ToArray();
+            Write("cooldown-emission-debug-" + count + "-" + optimize + ".json", new {
+                names = emissionNames, colors = ambers.Select(c => new[] { c.x, c.y, c.z, c.w }).ToArray()
+            });
+            Require(ambers.Any(c => c.x > c.y && c.x > .9f && c.y > .2f), "Cooldown amber indicator did not illuminate");
+            snapshots.Add(new { state = "Cooldown", modes = values(modeNames), progress = values(progressNames),
+                emission = ambers.Select(c => new[] { c.x, c.y, c.z, c.w }).ToArray() });
+            setSwitch("Shocker/Toggle", false);
+            animator.Update(.05f); animator.Update(.05f);
+            Require(receivers.All(c => !c.enabled), "Off state did not disable receivers after cooldown");
+            Write("off-status-debug-" + count + "-" + optimize + ".json", new {
+                modes = values(modeNames), progress = values(progressNames),
+                active = animator.GetBool(first + "_Active"), cooldown = animator.GetBool(first + "_Cooldown"),
+                toggle = animator.GetFloat("Shocker/Toggle"),
+                layerStates = Enumerable.Range(0, animator.layerCount).Select(i => new {
+                    layer = animator.GetLayerName(i),
+                    state = animator.GetCurrentAnimatorStateInfo(i).shortNameHash
+                }).ToArray()
+            });
+            Require(values(modeNames).Count(v => v > 1.9f && v < 2.1f) == 1
+                && values(progressNames).Count(v => v > .45f && v < .85f) == 1,
+                "Disabling touch hid the bridge's cooldown report");
+            snapshots.Add(new { state = "Cooldown with touch off", modes = values(modeNames), progress = values(progressNames) });
+            setSwitch(first + "_Cooldown", false);
+            setSwitch(first + "_Active", true);
+            animator.Update(.05f); animator.Update(.2f);
+            Require(receivers.All(c => !c.enabled) && values(modeNames).Count(v => v > .9f && v < 1.1f) == 1,
+                "Disabling touch hid the bridge's active report or enabled a receiver");
+            snapshots.Add(new { state = "Active with touch off", modes = values(modeNames) });
+            setSwitch(first + "_Active", false);
+            animator.Update(.05f); animator.Update(.2f);
+            Require(values(modeNames).All(v => Mathf.Abs(v) < .1f), "Off state did not clear after bridge activity");
             int triangles = avatar.GetComponentsInChildren<MeshFilter>(true).Sum(m => m.sharedMesh.triangles.Length / 3)
                 + avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true).Sum(m => m.sharedMesh.triangles.Length / 3);
             int slots = renderers.Sum(r => r.sharedMaterials.Length);
             Require(triangles == count * 244, "Build changed triangle count");
             if (optimize) Require(renderers.Length == 1 && slots == 1, "Optimizer did not produce one renderer and material slot");
-            Require(renderers.SelectMany(r => r.sharedMaterials).All(m => m != null && m.shader != null && !ShaderUtil.ShaderHasError(m.shader)), "Shader compilation failed");
+            Require(renderers.SelectMany(r => r.sharedMaterials).All(m => m != null && m.shader != null),
+                "Badge material or shader is missing");
+            var shaderMessages = renderers.SelectMany(r => r.sharedMaterials)
+                .Select(m => new { material = m.name, shader = m.shader.name,
+                    hasError = ShaderUtil.ShaderHasError(m.shader),
+                    messages = ShaderUtil.GetShaderMessages(m.shader).Select(x => new { x.message, x.file, x.line, severity = x.severity.ToString() }).ToArray() }).ToArray();
+            Write("shader-debug-" + count + "-" + optimize + ".json", shaderMessages);
+            Require(shaderMessages.All(m => !m.hasError), "Shader compilation failed");
             var emissionCurves = fx.animationClips.SelectMany(c => AnimationUtility.GetCurveBindings(c).Where(b => b.propertyName.Contains("EmissionColor")).Select(b => new { property = b.propertyName, max = AnimationUtility.GetEditorCurve(c, b).keys.Max(k => k.value) })).ToArray();
-            Require(emissionCurves.Any(c => c.property.EndsWith(".g") && c.max > 0) && emissionCurves.Any(c => c.property.EndsWith(".r") && c.max > 0), "Green/red emission curves were lost");
+            Require(emissionCurves.Any(c => c.property.EndsWith(".g") && c.max > 0) && emissionCurves.Any(c => c.property.EndsWith(".r") && c.max > 0), "Green/amber emission curves were lost");
             return new { count, optimized = optimize, triangles, renderers = renderers.Length, materialSlots = slots, menuControls, configInteractions, expressionParameters, invalidBindings = invalid, snapshots, emissionCurves, contacts = receivers.Select(c => new { c.parameter, path = AnimationUtility.CalculateTransformPath(c.transform, avatar.transform) }).ToArray() };
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }

@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 NAME = "com.furroxide.shockosc-avatar"
 
 
-def prepare(source, output, mode, optimizer=False, vrcfury_archive=None):
+def prepare(source, output, mode, optimizer=False, vrcfury_archive=None, legacy_source=None):
     source, output = Path(source).resolve(), Path(output).resolve()
     package_version = json.loads((ROOT / "Unity/Packages" / NAME / "package.json").read_text())["version"]
     if output.exists():
@@ -65,8 +65,15 @@ def prepare(source, output, mode, optimizer=False, vrcfury_archive=None):
     shutil.copyfile(ROOT / "Tools/UnityValidation.cs", output / "Assets/Editor/ShockOscPackageValidation.cs")
     original = output / "Assets/ValidationOriginal/PiShockBolt.fbx"
     original.parent.mkdir(parents=True)
-    shutil.copyfile(source / "Assets/Furroxide/PiShockBolt/PiShockBolt.fbx", original)
-    original_meta = (source / "Assets/Furroxide/PiShockBolt/PiShockBolt.fbx.meta").read_text()
+    reference = source / "Assets/Furroxide/PiShockBolt/PiShockBolt.fbx"
+    if not reference.exists():
+        # Current VPM projects no longer retain the old Assets copy. Compare
+        # against the installed previous package, rather than the candidate itself.
+        reference = source / "Packages" / NAME / "PiShockBolt.fbx"
+    if not reference.exists():
+        raise ValueError("An independent installed or legacy badge FBX is required for mesh comparison")
+    shutil.copyfile(reference, original)
+    original_meta = Path(str(reference) + ".meta").read_text()
     Path(str(original) + ".meta").write_text(original_meta.replace("197cdf1a99196754a86d5dd67f5cf5a5", "e4d8462229584b1ca873f7f3ede4c371"))
     # This source is outside Assets and Packages until the VPM installation step.
     with zipfile.ZipFile(ROOT / "dist" / f"{NAME}-{package_version}.zip") as archive:
@@ -74,8 +81,14 @@ def prepare(source, output, mode, optimizer=False, vrcfury_archive=None):
     shutil.copyfile(ROOT / "dist" / f"PiShockBolt-Modular-OSC-{package_version}.unitypackage", output / "candidate.unitypackage")
     shutil.copyfile(ROOT / "dist" / f"PiShockBolt-Optimizer-{package_version}.unitypackage", output / "optimizer.unitypackage")
     if mode == "migration":
-        old = source / "Assets/Furroxide/PiShockBolt"
+        old = Path(legacy_source).resolve() if legacy_source else source / "Assets/Furroxide/PiShockBolt"
         shutil.copytree(old, output / "Assets/Furroxide/PiShockBolt")
+        if legacy_source:
+            # The old package files can come from a preserved migration backup;
+            # the avatar's fitted placement preset remains in the current project.
+            preset = source / "Assets/Furroxide/PiShockBolt/OSC/Presets"
+            shutil.copytree(preset, output / "Assets/Furroxide/PiShockBolt/OSC/Presets", dirs_exist_ok=True)
+            shutil.copyfile(preset.with_suffix(".meta"), output / "Assets/Furroxide/PiShockBolt/OSC/Presets.meta")
         # Preserve a moved asset's GUID while an unrelated file takes its old path.
         moved = output / "Assets/Furroxide/PiShockBolt/PiShockBolt_EmissionMask.png"
         target = output / "Assets/MovedBadgeMask.png"
@@ -94,5 +107,6 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["vpm", "unitypackage", "migration"], required=True)
     parser.add_argument("--optimizer", action="store_true")
     parser.add_argument("--vrcfury-archive", type=Path, help="Use an official VRCFury VCC ZIP instead of the installed package")
+    parser.add_argument("--legacy-source", type=Path, help="Preserved old Assets/Furroxide/PiShockBolt directory for migration validation")
     args = parser.parse_args()
-    print(json.dumps(prepare(args.source_project, args.output, args.mode, args.optimizer, args.vrcfury_archive), indent=2))
+    print(json.dumps(prepare(args.source_project, args.output, args.mode, args.optimizer, args.vrcfury_archive, args.legacy_source), indent=2))

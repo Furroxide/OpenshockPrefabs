@@ -1,9 +1,9 @@
 {
   "name": "com.furroxide.shockosc-avatar",
   "displayName": "Furroxide ShockOSC Avatars",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "2022.3",
-  "description": "Modular lightning badges with independent ShockOSC touch channels and shared active/cooldown indicators for VRChat avatars.",
+  "description": "Modular lightning badges with per-group contact, active, and cooldown feedback for VRChat avatars.",
   "author": {
     "name": "Furroxide",
     "email": "221987073+furroxide@users.noreply.github.com",
@@ -12,7 +12,7 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "documentationUrl": "https://github.com/Furroxide/OpenshockPrefabs#readme",
   "changelogUrl": "https://github.com/Furroxide/OpenshockPrefabs/blob/main/Unity/Packages/com.furroxide.shockosc-avatar/CHANGELOG.md",
-  "url": "https://github.com/Furroxide/OpenshockPrefabs/releases/download/v0.1.0/com.furroxide.shockosc-avatar-0.1.0.zip",
+  "url": "https://github.com/Furroxide/OpenshockPrefabs/releases/download/v0.2.0/com.furroxide.shockosc-avatar-0.2.0.zip",
   "vpmDependencies": {
     "com.vrchat.avatars": ">=3.10.6 <3.11.0",
     "com.vrcfury.vrcfury": ">=1.1457.0 <2.0.0"

@@ -24,7 +24,7 @@ To roll back before changing anything else, remove the VCC package, then restore
 
 The original prefab assets are preserved separately. Installing this package does not replace or remove them automatically. Remove the old fitted Shocker instances from the avatar when replacing them with the new badges, then fit the new instances and retain your existing ShockOSC group names.
 
-Both integrations use the inherited global toggle and aggregate status names. Leaving both sets of receivers on an avatar is not a migration strategy.
+The 0.2.0 package keeps the inherited Shocker toggle but reads per-group active and cooldown status; the original integration uses aggregate status names. Remove the old receivers when fitting the new badges so one touch does not send duplicate commands.
 
 ## Return to manual installation
 

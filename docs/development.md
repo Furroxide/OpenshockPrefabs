@@ -14,9 +14,9 @@ python Tools/package.py build
 
 The output directory is `dist`. A build produces:
 
-- `com.furroxide.shockosc-avatar-0.1.0.zip`: VPM package, including the optional sample under `Samples~`.
-- `PiShockBolt-Modular-OSC-0.1.0.unitypackage`: manual installation, excluding the optional optimizer sample.
-- `PiShockBolt-Optimizer-0.1.0.unitypackage`: optional preset and its instructions.
+- `com.furroxide.shockosc-avatar-0.2.0.zip`: VPM candidate, including the optional sample under `Samples~`.
+- `PiShockBolt-Modular-OSC-0.2.0.unitypackage`: manual candidate, excluding the optional optimizer sample.
+- `PiShockBolt-Optimizer-0.2.0.unitypackage`: optional preset and its instructions.
 - `package.json`, `SHA256SUMS` and `release-manifest.json`: release metadata, archive hashes and the asset inventory.
 - `candidate-index.json`: a local listing candidate. It points to the future release URLs and must not be deployed before those downloads are public.
 
@@ -26,19 +26,19 @@ To test through Creator Companion before publication, add the source package fol
 
 For repeatable engine validation, `Tools/prepare_unity_validation.py` copies the locally installed SDK and cached Unity dependencies into a new disposable project. Use a short output path on Windows. Pass `--vrcfury-archive` with an official compatible VRCFury VCC ZIP if the source project's installed version is older than 1.1457.0.
 
-Run the Unity editor in batch mode with `ShockOscPackageValidation.Install`, wait for it to exit, then run `ShockOscPackageValidation.Run`. The runner waits for VRCFury initialization and processes unpacked build copies. VPM mode uses VPM Core's local-folder provider; manual mode uses Unity's native archive importer. `--optimizer` enables the optional sample/merge checks. For a manual optimizer test, run `ShockOscPackageValidation.ImportOptimizer` to completion before `Run`.
+Run the Unity editor in batch mode with `ShockOscPackageValidation.Install`, wait for it to exit, then run `ShockOscPackageValidation.Run`. Do not pass Unity's `-quit` flag: native archive import and VRCFury initialization finish asynchronously, and the validation methods exit the editor when done. The runner waits for VRCFury initialization and processes unpacked build copies. VPM mode uses VPM Core's local-folder provider; manual mode uses Unity's native archive importer. `--optimizer` enables the optional sample/merge checks. For a manual optimizer test, run `ShockOscPackageValidation.ImportOptimizer` to completion before `Run`.
 
-Migration mode needs an extra preparation step: run `ShockOscPackageValidation.PrepareMigration`, let Unity exit, apply the migration helper to that disposable project, then run `Install` and `Run`. The fixture includes a fitted scene, a local placement preset, a moved legacy file, an unrelated file occupying the old path, and an FBX whose metadata references a target material GUID.
+Migration mode needs an extra preparation step: run `ShockOscPackageValidation.PrepareMigration`, let Unity exit, apply the migration helper to that disposable project, then run `Install` and `Run`. If the source project was already migrated, pass `--legacy-source` with the preserved old `Assets/Furroxide/PiShockBolt` backup; the fixture adds the current project's local placement preset. It includes a fitted scene, a moved legacy file, an unrelated file occupying the old path, and an FBX whose metadata references a target material GUID.
 
 ## Release checks
 
-`release-status.json` records the status and evidence for licensing, clean installation, migration, runtime behaviour, live OSC and independent review. Normally, publication requires every check to be verified with evidence for the current version. The owner authorized `0.1.0` for public installation testing with redistribution terms unconfirmed and live OSC verification pending. Its version-specific `testRelease` record accepts those two limitations without marking them verified. Installation, migration, runtime and independent review still require evidence. That authorization does not carry forward to another version.
+`release-status.json` records the status and evidence for licensing, clean installation, migration, runtime behaviour, live OSC and independent review. Normally, publication requires every check to be verified with evidence for the current version. The owner authorized `0.1.0` and `0.2.0` for public installation testing with redistribution terms unconfirmed and live OSC verification pending. Each version's `testRelease` record accepts those two limitations without marking them verified. Installation, migration, runtime and independent review still require evidence. Authorization does not carry forward to another version.
 
-Verify fresh VCC and fallback installation without the original OpenShock asset. Check the single and four-instance prefabs, removal of one badge, no missing scripts or animation bindings, contact enablement, bone links and green/red indicators. Repeat the PC optimizer merge with 976 triangles for four badges and 732 for three.
+Verify fresh VCC and fallback installation without the original OpenShock asset. Check the single and four-instance prefabs, removal of one badge, no missing scripts or animation bindings, contact enablement and bone links. Verify that a held local contact lights only its cyan outline, bridge activity lights the matching full bolt and inner rim without flashing, and cooldown drives only that badge's amber perimeter. Check the short visual transitions, local intensity fill and optional intensity synchronization. Confirm active and cooldown remain visible when the Shocker receiver is off. Repeat the PC optimizer merge with 976 triangles for four badges and 732 for three.
 
 For migration, start from a copy of the existing custom installation containing fitted instances and the local placement preset. With Unity closed, run `Tools/migrate_legacy.py --project PATH --apply`, then install through VPM. Confirm GUID resolution, preserved overrides and recoverable backups. Also test a moved legacy file, an unrelated file with a different GUID, and a different asset whose metadata merely references a target GUID.
 
-For the live check, capture the contact group parameters emitted by VRChat and the returned `_Any_Active`/`_Any_Cooldown` status from the configured bridge. Record the versions and actual result. A synthetic OSC packet test does not replace this check. Physical device output is not required for package validation.
+For the live check, capture the contact group parameters emitted by VRChat and the returned per-group `_Active`, `_Cooldown`, `_CooldownPercentage` and `_Intensity` status from the configured bridge. Record the versions and actual result. A synthetic OSC packet test does not replace this check. Physical device output is not required for package validation.
 
 Inspect all final archives, image metadata, dependency references and public documentation. Run the project owner's required generated-media scan over the project and staged release. Check any match against the actual metadata; a matching substring alone does not establish provenance. Use two independent reviewers for craft/communication and correctness/delivery, bound to the final source revision and artifact hashes. Keep private review records outside the distributed package.
 

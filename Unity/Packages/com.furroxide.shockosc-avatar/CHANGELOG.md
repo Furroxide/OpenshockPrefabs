@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 — development test release, 2026-11-15
+
+- Give each badge one group setting that binds its receiver, active state, cooldown state, cooldown percentage and intensity feedback.
+- Replace aggregate indicators with independent group feedback. Keep old receiver overrides when the new group field is left empty.
+- Keep bridge-reported active and cooldown status visible while the local Shocker touch receiver is off.
+- Distinguish a held local contact attempt from ShockOSC's active report with a cyan outline; show cooldown as a receding amber perimeter.
+- Replace the small brightening cue with a smoothly illuminated full bolt and inner rim that hold steadily while ShockOSC reports the group active.
+- Fill the small mark over a dim full-length track with the bridge-reported intensity while active. Intensity stays local unless the badge's **Sync Intensity** option is enabled.
+- Compare squared distances around the feedback outline and take one final square root, reducing work requested by the shader without another texture, material or pass.
+- Keep the shared Shocker toggle and global Settings menu; retain prior prefab asset GUIDs and placement compatibility.
+- No live OSC or physical-device test is claimed for this release.
+
 ## 0.1.0 — initial development release, 2026-11-12
 
 - Package the replacement 244-triangle badge as independently placeable single and four-instance prefabs.

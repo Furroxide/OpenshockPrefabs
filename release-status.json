@@ -1,50 +1,51 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "redistribution": {
     "status": "unverified",
     "evidence": [],
-    "note": "Development follows the owner's open-source assumption. No licence grant was found in the upstream prefab repository or Shocker v1.2 archive."
+    "note": "No licence grant was found in the upstream prefab repository or Shocker v1.2 archive. The owner authorized this version as a development test release while that status remains unresolved; this is not a grant from upstream."
   },
   "cleanInstall": {
     "status": "verified",
     "evidence": [
-      "Unity 2022.3.22f1: native VPM Core installation and Unity archive import passed with SDK 3.10.6 and VRCFury 1.1457.0. Manual baseline passed without the optional optimizer. The separate optimizer archive passed native import."
+      "The final VPM ZIP SHA256 a67ac1152c40b316b3e6fa7707efee639bdb59584de442deeeccced86cb918d4 installed through VPM Core LocalFolderPackageProvider in a fresh disposable Unity 2022.3.22f1 project with SDK 3.10.6, VRCFury 1.1457.0 and optional optimizer 4.6.0; see ../Verification/HumanArtRelease-0.2.0/vpm-installation.json.",
+      "The final manual archive SHA256 b1e137a625093f5ebfac89323218fc556318e9de9bf621a0e7e2988bdff89c8a imported through Unity AssetDatabase.ImportPackage in a separate fresh disposable project without the optimizer; see ../Verification/HumanArtRelease-0.2.0/manual-installation.json."
     ]
   },
   "migration": {
     "status": "verified",
     "evidence": [
-      "Original custom-install migration preserved the fitted scene, local placement preset, transforms and receiver override, including moved-GUID and unrelated-file cases.",
-      "Current manual archives to VPM: all 31 exported asset/meta pairs were backed up with verified checksums; no known file or assembly remained under Assets. A full Unity reload and optimized runtime checks passed, preserving the local placement preset and reference-only FBX."
+      "The preserved 0.1.0 manual installation was fitted in a disposable Unity scene, then 31 legacy files were moved by their own GUIDs into a recoverable backup before installing 0.2.0 through VPM. The fitted scene, transform, local placement preset, custom receiver override and asset references survived; the moved old mask was removed and the unrelated file at its former path remained. See ../Verification/HumanArtRelease-0.2.0/migration-plan.json, migration-applied.json, migration-installation.json and migration-validation-results.json.",
+      "The migration installed the exact final VPM ZIP SHA256 a67ac1152c40b316b3e6fa7707efee639bdb59584de442deeeccced86cb918d4; see ../Verification/HumanArtRelease-0.2.0/migration-installation.json and migration-validation-results.json."
     ]
   },
   "runtime": {
     "status": "verified",
     "evidence": [
-      "Final 0.1.0 source: one shared toggle and all 11 local, unsaved configuration controls in single/four/three badge builds; parameter-value, contact, limb, indicator and animation-binding checks passed. Inactive badge groups retain the shared menu; EditorOnly groups do not install it.",
-      "Optional optimizer 4.6.0 retains the configuration parameters and merges 1/4/3 badges to one renderer/material slot with 244/976/732 triangles. Fresh manual, VPM, legacy migration and current manual-to-VPM cases passed."
+      "The final VPM optimizer and manual installs passed native Unity humanoid builds for four, one and three badges, plus inactive and EditorOnly cases. Animator sampling checked independent contact, active, cooldown and intensity bindings, partial entry and exit values, steady Active hold, group isolation and bone links. The optional optimizer yielded 976/244/732 triangles and one renderer/material slot in the four/one/three builds. See ../Verification/HumanArtRelease-0.2.0/vpm-validation-results.json and manual-validation-results.json.",
+      "Native Unity renders of the installed VPM shader show Ready, low/high intensity Active, cooldown and distance states. The low-intensity meter has a dim full-length track under its fill; the full bolt and rim remain the primary Active cue. See ../Verification/HumanArtRelease-0.2.0/preview."
+    ],
+    "limitations": [
+      "Local Unity sampling does not establish in-game appearance, remote sync timing, live OSC or physical-device output. GPU frame time was not measured."
     ]
   },
   "liveOsc": {
     "status": "pending",
     "evidence": [],
-    "note": "User explicitly deferred live VRChat/OpenShock Desktop verification on 2026-11-12. No physical device commands were sent."
+    "note": "Live VRChat/OpenShock Desktop verification was deferred. No physical device commands have been sent for this version."
   },
   "independentReview": {
     "status": "verified",
     "evidence": [
-      "Independent craft/communication and correctness/delivery reviews verified all six 0.1.0 delivery files and 89 public source files. Frozen release-manifest SHA256: 96e68ea4c16fa70e0d261c5188a6992296fb0229d31a705bcca314667fa6505b.",
-      "Version/documentation findings and current manual-to-VPM migration coverage were repaired and independently verified. Final fresh VPM, manual, legacy migration and manual-to-VPM Unity evidence was inspected."
-    ],
-    "limitations": [
-      "Native menu structure was checked; in-game appearance, live OSC and physical output remain unverified."
+      "Independent craft review of the exact final VPM and manual archives, native Unity renders, five-image gallery, README, package copy and landing page found no remaining material visual or copy defects; see ../Verification/HumanArtRelease-0.2.0/audit-findings.md.",
+      "Independent correctness review of the exact final VPM and manual archives verified declared hashes, stable GUIDs, migration and native build reports, gallery captions and provenance checks, with no material blocker. The owner-required current full-project and package media scans are in ../Verification/HumanArtRelease-0.2.0/ReleaseProjectMediaScan and ReleasePackageMediaScan."
     ]
   },
   "testRelease": {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "ownerAuthorized": true,
     "evidence": [
-      "Owner authorized publishing the initial development version 0.1.0 through the existing public VCC feed on 2026-11-12."
+      "The owner explicitly instructed publication after the thorough human-art review on 2026-11-15, following the prior 0.2.0 candidate handoff that disclosed unverified redistribution terms and pending live OSC verification. This authorizes a development test release with those limitations, not a claim that either check passed."
     ],
     "acceptedPendingChecks": [
       "redistribution",

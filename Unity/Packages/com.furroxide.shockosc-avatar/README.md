@@ -12,14 +12,14 @@ The package targets PC. A legacy mobile material is retained, but no Android bui
 
 1. Drag `OSC/PiShockBolt_OSC.prefab` or `OSC/PiShockBolt_OSC_Four.prefab` under your avatar root. The four-badge prefab contains independent nested instances. To remove a mount, unpack the outer group first, retaining the nested badge instances.
 2. Fit each instance using its root transform. Its **VRCFury Armature Link** selects the humanoid attachment bone. Leave alignment disabled to retain your placement.
-3. On the `Shocker` child, change the contact receiver's parameter to `ShockOsc/YourGroupName`, matching your ShockOSC group exactly. Adjust its radius and height to fit. Keep the child name `Shocker`; the animation bindings use it.
+3. On each badge root, set **Shock Osc Menu Installer → Group Name** to the matching ShockOSC group name, without the `ShockOsc/` prefix. The build sets the receiver and its feedback parameters together. Leave the field empty on an older fitted instance to keep its existing receiver parameter. Use a different group name for each badge. **Sync Intensity** is off by default; turn it on only if other players should see the small intensity meter. Adjust the `Shocker` child's contact radius and height to fit; keep that child name because the animation bindings use it.
 4. Upload through the VRChat SDK. VRCFury installs the menus, controller and bone attachments in the build copy.
 
 Fit prefab instances in your scene or create your own prefab variant under `Assets`. Installed VPM package files are replaced on update, so do not use them to store your custom placement.
 
 The contact component is disabled in the authored prefab and enabled by the animations. Leave that checkbox disabled. The badge stays visible for fitting in Edit Mode. The menu is `ShockOsc/Shocker`. Its `Shocker/Toggle` defaults off on first use, but its state is saved and can restore enabled on later avatar loads.
 
-The menu is installed once per avatar, including when several single badges or multiple four-badge prefabs are used. Each badge's **Shock Osc Menu Installer** supplies the shared menu references; keep that component on the prefab. It is removed from the upload copy during the build.
+The menu is installed once per avatar, including when several single badges or multiple four-badge prefabs are used. Each badge's **Shock Osc Menu Installer** supplies the shared menu references and group setting; keep that component on the prefab. It is removed from the upload copy during the build.
 
 ## OpenShock settings menu
 
@@ -52,9 +52,17 @@ See the [official parameter reference](https://wiki.openshock.org/guides/shockos
 | UpperRight | RightUpperArm | `ShockOsc/Upper-Right` |
 | LowerRight | RightUpperLeg | `ShockOsc/Lower-Right` |
 
-All badges display the aggregate `ShockOsc/_Any_Active` and `ShockOsc/_Any_Cooldown` status: a periodic green idle blink, green active pulse and red cooldown. Touch channels remain independent. Receivers use finger tags, other-user contact, local-only filtering, self-contact off and minimum velocity 0.05.
+Each badge reads its own `ShockOsc/{GroupName}_Active`, `_Cooldown`, `_CooldownPercentage` and `_Intensity` feedback from ShockOSC. Its receiver uses `ShockOsc/{GroupName}` as the touch input. Receivers use Constant mode, finger tags, other-user contact, local-only filtering and self-contact off.
 
-The inherited controller's states and timing are retained. Emission strength is baked into the colour curves for compatibility with the badge shader. The indicator area of the atlas is neutral so the green and red colours remain readable.
+| Badge state | Visual feedback | Meaning |
+| --- | --- | --- |
+| Shocker off, group inactive | Indicator and perimeter dark | Contact receiver disabled; bridge activity still takes visual priority |
+| Ready | Gold bolt with a dim green status mark | Receiver enabled and no bridge activity reported |
+| Touch held while ready | Cyan outline eases in while the local receiver reports contact | An attempt is being sent; this does **not** confirm output |
+| Group active | The whole lightning bolt and a complete inner rim brighten smoothly and hold; the small indicator fills over a dim track with reported intensity | ShockOSC reports this group active |
+| Group cooldown | The bolt dims as an amber mark and receding amber perimeter ease in | ShockOSC reports this group's cooldown; 1 is full and 0 is clear |
+
+The contact, active and cooldown visuals crossfade in about 0.1–0.12 s; Active holds without flashing. The touch outline is local to the wearer and appears only in Ready; active and cooldown reports take priority. Active and cooldown values are synchronized for remote viewers and remain visible when the Shocker touch receiver is off. Very short activations can arrive late or be missed remotely because VRChat sync is slower than local parameter updates. A badge normally uses three synced feedback parameters (two bools and a float); its touch and intensity inputs are local and unsynced. **Sync Intensity** adds one synced float (8 bits) per badge. The meter is a relative bridge-reported command level, not measured device output; it is shown only while Active even though ShockOSC can retain its value during cooldown. These visuals report avatar/bridge parameters, not a physical-device acknowledgement. The ShockOSC parameter set checked for this package has no per-group remaining-duration parameter, so the badge does not show an estimated timer.
 
 Enable OSC in VRChat and configure matching groups in ShockOSC/OpenShock Desktop. This package supplies the avatar assets; the bridge, device setup and credentials remain separate. Follow the [official avatar setup guide](https://wiki.openshock.org/guides/shockosc/avatar-setup-vrc).
 
@@ -62,7 +70,7 @@ Enable OSC in VRChat and configure matching groups in ShockOSC/OpenShock Desktop
 
 Install d4rkAvatarOptimizer separately. Version 4.6.0 is the current validation target.
 
-For VCC installation, select this package in **Window → Package Manager**, expand **Samples** and import **d4rkAvatarOptimizer preset**. For manual installation, import `PiShockBolt-Optimizer-0.1.0.unitypackage` after installing the optimizer; its preset appears at `Assets/Furroxide/PiShockBolt/OSC/PiShockBolt_Optimizer.preset`.
+For VCC installation, select this package in **Window → Package Manager**, expand **Samples** and import **d4rkAvatarOptimizer preset**. For manual installation, import `PiShockBolt-Optimizer-0.2.0.unitypackage` after installing the optimizer; its preset appears at `Assets/Furroxide/PiShockBolt/OSC/PiShockBolt_Optimizer.preset`.
 
 Add one optimizer component to the avatar root and apply the supplied preset through the component's preset selector. Keep **Apply on Upload** enabled. If an optimizer is already configured, retain its settings and enable **Merge Skinned Meshes**, **Merge Static Meshes as Skinned**, **Use Shader Toggles** and **Merge Different Property Materials**. Disable **Delete Unused Animator Parameters** so the OSC configuration parameters remain available even though no animation uses them.
 
@@ -79,9 +87,9 @@ The PC material uses the included lightweight shader. The optional advanced merg
 
 ## Verification and licensing status
 
-The release candidate was checked in disposable humanoid projects with Unity 2022.3.22f1, SDK 3.10.6, VRCFury 1.1457.0 and optimizer 4.6.0. Fresh VPM installation, native Unity archive import and backed-up migration passed. Single, four-badge and three-badge build copies retained their channels, limb attachments, contact enablement and green/red indicators through Disabled → Idle → Active → Cooldown → Disabled → Idle. Shader and animation-binding checks passed, and the optional PC merge produced the counts above.
+Version 0.2.0 passed disposable VPM and manual-archive installation and humanoid build checks with Unity 2022.3.22f1, SDK 3.10.6 and VRCFury 1.1457.0. Four, one and three badge builds retained independent contact, active and cooldown feedback, including cooldown percentage and a custom group override. Optional optimizer 4.6.0 builds merged to the renderer and triangle counts above. Current evidence is tracked in the repository's `release-status.json`. The published 0.1.0 validation does not establish results for this revision.
 
-The release-copy FBX matches the replacement badge source in vertices, normals, UVs and topology; only texture-resource paths were rebased. Live VRChat/bridge traffic and physical device output were not exercised. Current release status is tracked in the repository's `release-status.json`.
+The release-copy FBX matches the replacement badge source in vertices, normals, UVs and topology; only texture-resource paths were rebased. Live VRChat/bridge traffic and physical device output have not been exercised for this revision.
 
 The replacement atlas and mask have mipmaps and streaming enabled, with texture Read/Write disabled. The FBX retains Read/Write and Legacy Blend Shape Normals for SDK import validation.
 

@@ -364,6 +364,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c005ed59ce53b6b31137a4b2cc1ce6, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  groupName:
+  syncIntensity: 0
+  legacyBadgeControllerFeature: {fileID: 2282750415941237254}
   menu: {fileID: 11400000, guid: eed84c8b0eeb56238d37148decc73026, type: 2}
   parameters: {fileID: 11400000, guid: 8e25b916be795845a8fb0979f56662f3, type: 2}
   controller: {fileID: 9100000, guid: 64d6b38e3baa51fb9e5fe00bf8e8b621, type: 2}

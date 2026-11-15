@@ -1,21 +1,35 @@
 # Furroxide ShockOSC Avatars
 
-Modular lightning badges for VRChat avatars: independent touch channels, shared active and cooldown indicators, and an optional PC mesh merge. Each badge uses 244 triangles and the same two 512 × 512 texture maps.
+Modular lightning badges for VRChat avatars, with independent touch channels, per-group feedback, and an optional PC mesh merge. Each badge uses 244 triangles and the same two 512 × 512 texture maps.
 
 This is the Furroxide-maintained fork of [Kyobinoyo's OpenShock prefabs](https://github.com/Kyobinoyo/OpenshockPrefabs). The Shocker controller, parameter asset, animation clips and VRCFury configuration were adapted for the replacement badge. The original model, textures and Poiyomi material are excluded from the maintained package. The [original prefab documentation](docs/upstream-prefabs.md) and upstream history are preserved.
 
-**Initial development release:** `0.1.0` is available for testing the Creator Companion installation flow. Upstream redistribution terms and the live VRChat/bridge test remain unverified. Development follows the owner's open-source assumption; this is not a confirmed licence grant. See [licensing status](Unity/Packages/com.furroxide.shockosc-avatar/LICENSE.md) and [release checks](docs/development.md#release-checks).
+**Development test release:** `0.2.0` adds per-group active and cooldown visuals, local contact-attempt feedback, a full-bolt active cue, secondary intensity feedback and a cooldown perimeter. The earlier `0.1.0` remains available. Upstream redistribution terms and the live VRChat/bridge test remain unverified. Development follows the owner's open-source assumption; this is not a confirmed licence grant. See [licensing status](Unity/Packages/com.furroxide.shockosc-avatar/LICENSE.md) and [release checks](docs/development.md#release-checks).
+
+## Feedback gallery
+
+Version 0.2.0 adds these distinct cues to the earlier badge. The images show the installed PC shader in Unity. Cyan means a local touch attempt; the illuminated bolt and amber perimeter reflect ShockOSC's group status, not a physical-device acknowledgement.
+
+| Local contact attempt | Group active |
+| --- | --- |
+| ![Gold bolt with a cyan outline while touch is held](docs/images/feedback-0.2.0/contact.png) | ![Whole bolt and inner rim lit mint while the group is active](docs/images/feedback-0.2.0/active.png) |
+| **Reported intensity: 20% left, 90% right** | **Group cooldown: half of the perimeter remains** |
+| ![Two active badges side by side, showing a short bright fill over a dim track at 20 percent and a nearly full fill at 90 percent](docs/images/feedback-0.2.0/intensity.png) | ![Gold bolt with an amber mark and a partly receded amber perimeter during cooldown](docs/images/feedback-0.2.0/cooldown.png) |
+
+![Five rendered visual-strength stages from Ready to fully Active, progressively lighting the bolt and rim](docs/images/feedback-0.2.0/transition.png)
+
+The final strip samples five visual strengths from 0 to 1; the Animator eases between states in about 0.1–0.12 seconds and holds the Active appearance. The small intensity mark shows the bridge-reported command level while Active, with synchronization off by default.
 
 ## Install with Creator Companion
 
 Use a test avatar project first. For an existing custom installation, follow the [migration guide](docs/upgrading.md) before adding the VCC package.
 
 1. Open the [ShockOSC repository site](https://furroxide.github.io/OpenshockPrefabs/) and click **Add repository to Creator Companion**. Add the [VRCFury repository](https://vcc.vrcfury.com/) too if it is not already configured.
-2. Open **Manage Project** for your humanoid avatar project and install **Furroxide ShockOSC Avatars 0.1.0**.
+2. Open **Manage Project** for your humanoid avatar project and install **Furroxide ShockOSC Avatars 0.2.0**.
 3. In Unity, open **Packages → Furroxide ShockOSC Avatars → OSC**. Drag the single-badge or four-badge prefab under your avatar root.
-4. Fit each badge and set its receiver parameter to match a ShockOSC group. Follow the [fitting and channel guide](Unity/Packages/com.furroxide.shockosc-avatar/README.md).
+4. Fit each badge and set its **Group Name** field to the matching ShockOSC group, without the `ShockOsc/` prefix. Follow the [fitting guide](Unity/Packages/com.furroxide.shockosc-avatar/README.md) for feedback channels and the four-badge prefab.
 
-Version `0.1.0` has no prerelease suffix and appears without enabling **Show Pre-Release Packages**. The [listing JSON](https://furroxide.github.io/OpenshockPrefabs/index.json) includes published releases only. For local development without publication, use a VCC user package; see [development](docs/development.md).
+The development releases have no prerelease suffix and appear without enabling **Show Pre-Release Packages**. The [listing JSON](https://furroxide.github.io/OpenshockPrefabs/index.json) includes published releases only. For local development without publication, use a VCC user package; see [development](docs/development.md).
 
 ## Compatibility
 
@@ -32,7 +46,7 @@ VCC resolves the required SDK and VRCFury packages from repositories you have ad
 
 ## Other installation and upgrades
 
-- The versioned `PiShockBolt-Modular-OSC-0.1.0.unitypackage` is a fallback for manual installation. Install the SDK and VRCFury first. The optimizer preset is a separate optional download.
+- The versioned `PiShockBolt-Modular-OSC-0.2.0.unitypackage` is the fallback for manual installation. Install the SDK and VRCFury first. The optimizer preset is a separate optional archive.
 - Choose one installation format per project. When upgrading the custom Unity package, run the backed-up GUID migration helper before installing through VCC; it preserves avatar-specific placement presets. Read [upgrading](docs/upgrading.md) before switching formats.
 - [Avatar fitting, channels and optimizer setup](Unity/Packages/com.furroxide.shockosc-avatar/README.md)
 - [Official ShockOSC avatar setup](https://wiki.openshock.org/guides/shockosc/avatar-setup-vrc)
