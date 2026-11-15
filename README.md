@@ -10,11 +10,15 @@ This is the Furroxide-maintained fork of [Kyobinoyo's OpenShock prefabs](https:/
 
 Version 0.2.0 adds these distinct cues to the earlier badge. The images show the installed PC shader in Unity. Cyan means a local touch attempt; the illuminated bolt and amber perimeter reflect ShockOSC's group status, not a physical-device acknowledgement.
 
-| Local contact attempt | Group active |
-| --- | --- |
-| ![Gold bolt with a cyan outline while touch is held](docs/images/feedback-0.2.0/contact.png) | ![Whole bolt and inner rim lit mint while the group is active](docs/images/feedback-0.2.0/active.png) |
-| **Reported intensity: 20% left, 90% right** | **Group cooldown: half of the perimeter remains** |
-| ![Two active badges side by side, showing a short bright fill over a dim track at 20 percent and a nearly full fill at 90 percent](docs/images/feedback-0.2.0/intensity.png) | ![Gold bolt with an amber mark and a partly receded amber perimeter during cooldown](docs/images/feedback-0.2.0/cooldown.png) |
+| Local contact attempt | Group active | Group cooldown |
+| --- | --- | --- |
+| ![Gold bolt with a cyan outline while touch is held](docs/images/feedback-0.2.0/contact.png) | ![Whole bolt and inner rim lit mint while the group is active](docs/images/feedback-0.2.0/active.png) | ![Gold bolt with an amber mark and a partly receded amber perimeter during cooldown](docs/images/feedback-0.2.0/cooldown.png) |
+
+**Reported intensity: 20% left, 90% right**
+
+![Two active badges side by side, showing a short bright fill over a dim track at 20 percent and a nearly full fill at 90 percent](docs/images/feedback-0.2.0/intensity.png)
+
+**Smooth activation: five visual-strength stages**
 
 ![Five rendered visual-strength stages from Ready to fully Active, progressively lighting the bolt and rim](docs/images/feedback-0.2.0/transition.png)
 
